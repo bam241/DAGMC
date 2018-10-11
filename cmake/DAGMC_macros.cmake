@@ -41,7 +41,6 @@ macro (dagmc_setup_build)
 endmacro ()
 
 macro (set_system_var)
-    MESSAGE("ENV_OS: " ${ENV_OS})
   if (${ENV_OS} STREQUAL Darwin)
     set(SHARED_LIB_SUFFIX ".dylib")
   else ()
