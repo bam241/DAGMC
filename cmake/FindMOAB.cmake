@@ -3,8 +3,11 @@ message("")
 # Find MOAB cmake config file
 # Only used to determine the location of the HDF5 with which MOAB was built
 set(MOAB_SEARCH_DIRS)
+MESSAGE(STATUS ${MOAB_DIR})
 file(GLOB MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS} "${MOAB_DIR}/lib/cmake/MOAB")
-string(REPLACE "\n" ";" MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS})
+if (MOAB_SEARCH_DIRS)
+  string(REPLACE "\n" ";" MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS})
+endif ()
 find_path(MOAB_CMAKE_CONFIG
   NAMES MOABConfig.cmake
   PATHS ${MOAB_SEARCH_DIRS}
@@ -21,11 +24,11 @@ endif ()
 include(${MOAB_CMAKE_CONFIG})
 set(HDF5_ROOT ${HDF5_DIR})
 set(ENV{PATH} "${HDF5_ROOT}:$ENV{PATH}")
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${SHARED_LIB_SUFFIX})
 find_package(HDF5 REQUIRED)
 set(HDF5_LIBRARIES_SHARED ${HDF5_LIBRARIES})
 # CMake doesn't let you find_package(HDF5) twice so we have to do this instead
-string(REPLACE ".so" ".a" HDF5_LIBRARIES_STATIC "${HDF5_LIBRARIES_SHARED}")
+string(REPLACE ${SHARED_LIB_SUFFIX} ".a" HDF5_LIBRARIES_STATIC "${HDF5_LIBRARIES_SHARED}")
 set(HDF5_LIBRARIES)
 
 message(STATUS "HDF5_INCLUDE_DIRS: ${HDF5_INCLUDE_DIRS}")
@@ -47,7 +50,8 @@ if (MOAB_INCLUDE_DIRS)
 endif ()
 
 # Find MOAB library (shared)
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
+MESSAGE("SHARED_LIB_SUFFIX: " ${SHARED_LIB_SUFIX})
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${SHARED_LIB_SUFFIX})
 find_library(MOAB_LIBRARIES_SHARED
   NAMES MOAB
   HINTS ${MOAB_DIR}
