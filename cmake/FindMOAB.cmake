@@ -3,7 +3,6 @@ message("")
 # Find MOAB cmake config file
 # Only used to determine the location of the HDF5 with which MOAB was built
 set(MOAB_SEARCH_DIRS)
-MESSAGE(STATUS ${MOAB_DIR})
 file(GLOB MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS} "${MOAB_DIR}/lib/cmake/MOAB")
 if (MOAB_SEARCH_DIRS)
   string(REPLACE "\n" ";" MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS})
