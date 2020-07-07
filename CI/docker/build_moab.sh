@@ -25,7 +25,8 @@ cmake ../moab -DBUILD_SHARED_LIBS=OFF \
 make -j${jobs}
 make install
 rm -rf *
-cmake ../moab -DENABLE_HDF5=ON -DHDF5_ROOT=${hdf5_install_dir} \
+cmake ../moab -DBUILD_SHARED_LIBS=ON \
+              -DENABLE_HDF5=ON -DHDF5_ROOT=${hdf5_install_dir} \
               -DENABLE_PYMOAB=ON \
               -DENABLE_BLASLAPACK=OFF \
               -DENABLE_FORTRAN=OFF \
