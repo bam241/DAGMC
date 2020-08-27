@@ -447,7 +447,7 @@ void ExN01DetectorConstruction::BuildParticleFilter(vector<std::string> particle
 
       particle_filters[particle_name] = filter;
     }
-}
+  }
 }
 
 // as soon as we shift to c++11 or higher this should be removed
