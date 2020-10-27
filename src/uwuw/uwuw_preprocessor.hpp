@@ -87,6 +87,32 @@ class uwuw_preprocessor {
                     bool fatal = true); // constructor
 
   /**
+   * \brief Instanciates a new instance of the uwuw_preprocessor class, populating several important private
+   * class member variables and other classes that are required.
+   *
+   * makes a new instance of the name_concatenator class, which takes care of making sure the material names are
+   * unique. It populates the material_library data structure private to the uwuw_preprocessor class, loads the
+   * DAGMC geometry into the DAG instance. Sets the class member variables output_filename (where the data will
+   * be written to) and sets the verbosity of the program.
+   *
+   * \param[in]  material_library_filename, a string defining the full path of the material library.
+   * \param[in]  MBI_ptr, pointer to a MOAB instance.
+   * \param[in]  output_filename, a string defining the full path of the output file.
+   * \param[in]  matlib_hdf5_path, a string defining where to find the material library within the HDF5 file
+   *             default location is "/materials"
+   * \param[in]  verbosity, a boolean value representing if vebrose (true) or non verbose(false) ouput
+   *             is required.
+   * \param[in]  fatal, a boolean value representing if fatal (true) then we exit on fatal errors, not fatal (false)
+   *             we continue.
+   */
+  uwuw_preprocessor(std::string material_library_filename,
+                    moab::Interface* MBI_ptr,
+                    std::string output_file,
+                    std::string matlib_hdf5_path = "/materials",
+                    bool verbose = false,
+                    bool fatal = true); // constructor
+
+  /**
    * \brief standard destructor
    */
   ~uwuw_preprocessor(); // destructor

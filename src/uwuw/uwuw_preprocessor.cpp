@@ -34,6 +34,39 @@ uwuw_preprocessor::uwuw_preprocessor(std::string material_library_filename, std:
   fatal = fatal_errors;
 }
 
+uwuw_preprocessor::uwuw_preprocessor(std::string material_library_filename, moab::Interface* MBI_ptr,
+                                     std::string output_file,  std::string matlib_hdf5_path,
+                                     bool verbosity, bool fatal_errors) {
+  // make new name concatenator class
+  ncr = new name_concatenator();
+
+  // make new DAGMC instance
+  DAG = new moab::DagMC(MBI_ptr);
+  DAG->load_existing_contents()
+
+
+  // load the materials
+  material_library = mat_lib.load_pyne_materials(material_library_filename, matlib_hdf5_path);
+
+  // load the material objects
+  // load the dag file
+  moab::ErrorCode rval = DAG->load_file(dagmc_filename.c_str());
+
+  // do the minimal DAGMC initialisation
+  rval = DAG->setup_impl_compl();
+  rval = DAG->setup_indices();
+
+  // make a new dagmcmetadata class
+  dmd = new dagmcMetaData(DAG);
+  dmd->load_property_data();
+  // set the output filename
+  output_filename = output_file;
+
+  // set the verbosity
+  verbose = verbosity;
+  fatal = fatal_errors;
+}
+
 // destructor
 uwuw_preprocessor::~uwuw_preprocessor() {
 }
