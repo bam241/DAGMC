@@ -42,18 +42,15 @@ uwuw_preprocessor::uwuw_preprocessor(std::string material_library_filename, moab
 
   // make new DAGMC instance
   DAG = new moab::DagMC(MBI_ptr);
-  DAG->load_existing_contents()
-
+  DAG->load_existing_contents();
 
   // load the materials
   material_library = mat_lib.load_pyne_materials(material_library_filename, matlib_hdf5_path);
 
-  // load the material objects
-  // load the dag file
-  moab::ErrorCode rval = DAG->load_file(dagmc_filename.c_str());
+
 
   // do the minimal DAGMC initialisation
-  rval = DAG->setup_impl_compl();
+  moab::ErrorCode rval = DAG->setup_impl_compl();
   rval = DAG->setup_indices();
 
   // make a new dagmcmetadata class
