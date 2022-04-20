@@ -316,6 +316,15 @@ class dagmcMetaData {
    */
   std::map<moab::EntityHandle, std::map<std::string, double>> importance_map;
 
+  // Some constant keyword values
+  const std::string& graveyard_str() const { return graveyard_str_; }
+  const std::string& vacuum_str() const { return vacuum_str_; }
+  const std::string& vacuum_mat_str() const { return vacuum_mat_str_; }
+  const std::string& graveyard_mat_str() const { return graveyard_mat_str_; }
+  const std::string& reflecting_str() const { return reflecting_str_; }
+  const std::string& white_str() const { return white_str_; }
+  const std::string& periodic_str() const { return periodic_str_; }
+
   // private member variables
  private:
   /**
