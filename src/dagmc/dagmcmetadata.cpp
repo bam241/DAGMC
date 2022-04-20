@@ -209,11 +209,11 @@ void dagmcMetaData::parse_material_data() {
 
     // set the material value
     volume_material_property_data_eh[eh] = grp_name;
-
+    std::cout << "Group name -- " << grp_name << std::endl;
     bool is_graveyard =
-        to_lower(grp_name).find(to_lower(graveyard_str)) != std::string::npos;
+      to_lower(grp_name) == "mat:" + to_lower(graveyard_str);
     bool is_vacuum =
-        to_lower(grp_name).find(to_lower(vacuum_str)) != std::string::npos;
+        to_lower(grp_name) == "mat:" + to_lower(vacuum_str);
 
     // not graveyard or vacuum or implicit compliment
     if (!is_graveyard && !is_vacuum && !DAG->is_implicit_complement(eh)) {
@@ -379,7 +379,7 @@ void dagmcMetaData::parse_boundary_data() {
       exit(EXIT_FAILURE);
     }
     // 2d entities have been tagged with the boundary condition property
-    // ie. both surfaces and its members triangles,
+    // ie. both surfaces and its member triangles
 
     std::string bc_string = to_lower(boundary_assignment[0]);
 
