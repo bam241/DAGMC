@@ -353,6 +353,8 @@ class dagmcMetaData {
   // Some constant keyword values
   const std::string graveyard_str{"Graveyard"};
   const std::string vacuum_str{"Vacuum"};
+  const std::string vacuum_mat_str{"mat:Vacuum"};
+  const std::string graveyard_mat_str{"mat:Graveyard"};
   const std::string reflecting_str{"Reflecting"};
   const std::string white_str{"White"};
   const std::string periodic_str{"Periodic"};
