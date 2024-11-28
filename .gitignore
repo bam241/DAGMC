@@ -17,3 +17,4 @@ build
 #ignore pyne amalgamation
 src/pyne/pyne.cpp
 src/pyne/pyne.h
+.DS_Store
