@@ -3,13 +3,15 @@ message("")
 # Find MOAB cmake config file
 # Only used to determine the location of the HDF5 with which MOAB was built
 set(MOAB_SEARCH_DIRS)
-file(GLOB MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS} "${MOAB_DIR}/lib*/cmake/MOAB")
-string(REPLACE "\n" ";" MOAB_SEARCH_DIRS "${MOAB_SEARCH_DIRS}")
+MESSAGE(${MOAB_DIR})
+file(GLOB MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS} "${MOAB_DIR}/lib/cmake/MOAB")
+#string(REPLACE "\n" ";" MOAB_SEARCH_DIRS "${MOAB_SEARCH_DIRS}")
 find_path(MOAB_CMAKE_CONFIG
   NAMES MOABConfig.cmake
-  PATHS ${MOAB_SEARCH_DIRS}
+  PATHS "${MOAB_DIR}/lib/cmake/MOAB"}
   NO_DEFAULT_PATH
 )
+MESSAGE(${MOAB_CMAKE_CONFIG}/MOABConfig.cmake)
 if (MOAB_CMAKE_CONFIG)
   set(MOAB_CMAKE_CONFIG ${MOAB_CMAKE_CONFIG}/MOABConfig.cmake)
   message(STATUS "MOAB_CMAKE_CONFIG: ${MOAB_CMAKE_CONFIG}")
