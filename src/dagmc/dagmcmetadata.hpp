@@ -250,8 +250,6 @@ class dagmcMetaData {
    */
   std::set<std::string> set_remove_rich(std::set<std::string> properties_set);
 
-  std::string to_lower(const std::string input);
-
   // public member variables
  public:
   /**

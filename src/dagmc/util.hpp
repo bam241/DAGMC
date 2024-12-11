@@ -10,5 +10,10 @@ inline void lowercase_str(std::string& input) {
                  [](unsigned char c) { return std::tolower(c); });
 }
 
+inline std::string to_lower(std::string input) {
+  lowercase_str(input);
+  return input;
+}
+
 }  // namespace dagmc_util
 #endif
