@@ -202,8 +202,13 @@ void write_cell_cards(std::ostringstream& lcadfile,
       // that material numbers are assigned
       mat_num = DMD->volume_material_data_eh[entity];
       // if we cant make an int from the mat_num
-      if (dagmc_util::lowercase_str(mat_num) != dagmc_util::lowercase_str(DMD->graveyard_mat_str()) &&
-          dagmc_util::lowercase_str(mat_num) != dagmc_util::lowercase_str(DMD->vacuum_mat_str())) {
+       if (dagmc_util::lowercase_str(mat_num) !=
+              dagmc_util::lowercase_str(DMD->graveyard_mat_str()) &&
+          dagmc_util::lowercase_str(mat_num) !=
+              dagmc_util::lowercase_str(DMD->vacuum_mat_str())) {
+         if (!DMD->try_to_make_int(mat_num)) {
+           std::cerr << "Failed to cast material number to an integer"
+                     << std::endl;
         if (!DMD->try_to_make_int(mat_num)) {
           std::cerr << "Failed to cast material number to an integer"
                     << std::endl;
