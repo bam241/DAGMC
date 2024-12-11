@@ -21,6 +21,7 @@ Next version
   * Update github actions to newer versions as necessary (#958)
   * CMake error message update (#960)
   * Updated documentation to build dependencies (#963)
+  * Fixed the name of the Graveyard and the Vaccuum to mat:Graveyard and mat:Vacuum (and lower case) (#971)
 
 v3.2.3
 ====================
