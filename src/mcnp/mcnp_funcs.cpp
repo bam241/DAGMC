@@ -225,8 +225,8 @@ void write_cell_cards(std::ostringstream& lcadfile,
     } else {
       std::string mat_name = DMD->volume_material_property_data_eh[entity];
       // if we not vacuum or graveyard
-      if (mat_name != DMD->vacuum_mat_str() &&
-          mat_name != DMD->graveyard_mat_str()) {
+      if (DMD->to_lower(mat_num) != DMD->to_lower(DMD->graveyard_mat_str()) &&
+          DMD->to_lower(mat_num) != DMD->to_lower(DMD->vacuum_mat_str())) {
         if (workflow_data->material_library.count(mat_name) == 0) {
           std::cerr << "Material with name " << mat_name << " not found "
                     << std::endl;
@@ -267,10 +267,10 @@ void write_cell_cards(std::ostringstream& lcadfile,
       }
       double imp = 1.0;
       // if we find graveyard always have importance 0.0
-      if (mat_name == DMD->graveyard_mat_str()) {
+      if (DMD->to_lower(mat_num) == DMD->to_lower(DMD->graveyard_mat_str()) {
         imp = 0.0;
         // no splitting can happenin vacuum set to 1
-      } else if (mat_name == DMD->vacuum_mat_str()) {
+      } else if (DMD->to_lower(mat_num) != DMD->to_lower(DMD->vacuum_mat_str())) {
         imp = 1.0;
         // otherwise as the map says
       } else {
