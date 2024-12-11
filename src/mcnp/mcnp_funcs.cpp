@@ -204,7 +204,7 @@ void write_cell_cards(std::ostringstream& lcadfile,
        if (DMD->to_lower(mat_num) !=
               DMD->to_lower(DMD->graveyard_mat_str()) &&
           DMD->to_lower(mat_num) !=
-              DMD->to_lower(DMD->vacuum_mat_str())) {
+              DMD->to_lower(DMD->vacuum_mat_str()) {
          if (!DMD->try_to_make_int(mat_num)) {
            std::cerr << "Failed to cast material number to an integer"
                      << std::endl;
