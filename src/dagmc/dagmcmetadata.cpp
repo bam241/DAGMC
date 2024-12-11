@@ -209,7 +209,7 @@ void dagmcMetaData::parse_material_data() {
 
     // set the material value
     volume_material_property_data_eh[eh] = grp_name;
-    std::cout << "Group name -- " << grp_name << std::endl;
+    logger.message("Group name -- " + grp_name);
     bool is_graveyard =
       to_lower(grp_name) == to_lower(graveyard_mat_str());
     bool is_vacuum =
