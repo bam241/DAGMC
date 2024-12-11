@@ -1,7 +1,7 @@
 #include "mcnp_funcs.h"
 
 #include "DagMC.hpp"
-#include "util.hpp"
+#include "dagmcmetadata.hpp"
 
 using moab::DagMC;
 
