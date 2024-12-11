@@ -272,10 +272,12 @@ void write_cell_cards(std::ostringstream& lcadfile,
       }
       double imp = 1.0;
       // if we find graveyard always have importance 0.0
-      if (dagmc_util::to_lower(mat_num) == dagmc_util::to_lower(DMD->graveyard_mat_str())) {
+      if (dagmc_util::to_lower(mat_num) ==
+          dagmc_util::to_lower(DMD->graveyard_mat_str())) {
         imp = 0.0;
         // no splitting can happenin vacuum set to 1
-      } else if (dagmc_util::to_lower(mat_num) == dagmc_util::to_lower(DMD->vacuum_mat_str())) {
+      } else if (dagmc_util::to_lower(mat_num) ==
+                 dagmc_util::to_lower(DMD->vacuum_mat_str())) {
         imp = 1.0;
         // otherwise as the map says
       } else {
@@ -285,7 +287,7 @@ void write_cell_cards(std::ostringstream& lcadfile,
     }
     // its possible no importances were assigned
     if (set.size() == 0) {
-      if (dagmc_util::to_lower(mat_num) != dagmc_util::to_lower(DMD->graveyard_mat_str()) {
+      if (dagmc_util::to_lower(mat_num) != dagmc_util::to_lower(DMD->graveyard_mat_str())) {
         importances = "imp:n=1";
       } else {
         importances = "imp:n=0";
@@ -293,7 +295,7 @@ void write_cell_cards(std::ostringstream& lcadfile,
     }
 
     // add descriptive comments for special volumes
-    if (dagmc_util::to_lower(mat_num) == dagmc_util::to_lower(DMD->graveyard_mat_str()) {
+    if (dagmc_util::to_lower(mat_num) == dagmc_util::to_lower(DMD->graveyard_mat_str())) {
       importances += "  $ graveyard";
     } else if (DAG->is_implicit_complement(entity)) {
       importances += "  $ implicit complement";
