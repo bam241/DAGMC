@@ -360,13 +360,13 @@ class dagmcMetaData {
   std::map<std::string, std::string> keyword_synonyms;
 
   // Some constant keyword values
-  const std::string graveyard_str{"Graveyard"};
-  const std::string vacuum_str{"Vacuum"};
-  const std::string vacuum_mat_str{"mat:Vacuum"};
-  const std::string graveyard_mat_str{"mat:Graveyard"};
-  const std::string reflecting_str{"Reflecting"};
-  const std::string white_str{"White"};
-  const std::string periodic_str{"Periodic"};
+  const std::string graveyard_str_{"Graveyard"};
+  const std::string vacuum_str_{"Vacuum"};
+  const std::string vacuum_mat_str_{"mat:Vacuum"};
+  const std::string graveyard_mat_str_{"mat:Graveyard"};
+  const std::string reflecting_str_{"Reflecting"};
+  const std::string white_str_{"White"};
+  const std::string periodic_str_{"Periodic"};
 
   DagMC_Logger logger;
 };

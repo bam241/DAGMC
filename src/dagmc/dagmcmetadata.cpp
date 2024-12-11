@@ -234,7 +234,7 @@ void dagmcMetaData::parse_material_data() {
       if (implicit_complement_material == "") {
         logger.message("Implicit Complement assumed to be Vacuum");
         volume_material_property_data_eh[eh] = "mat:Vacuum";
-        volume_material_data_eh[eh] = vacuum_str;
+        volume_material_data_eh[eh] = vacuum_str();
       } else {
         volume_material_property_data_eh[eh] =
             "mat:" + implicit_complement_material;
