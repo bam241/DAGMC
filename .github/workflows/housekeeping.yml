@@ -1,0 +1,59 @@
+name: Housekeeping Checks
+
+on:
+  # allows us to run workflows manually
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - 'src/**'
+      - '.github/workflows/housekeeping.yml'
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup environment 
+        run: |
+          echo "REPO_SLUG=${GITHUB_REPOSITORY}" >> $GITHUB_ENV
+          echo "PULL_REQUEST=$(echo  $GITHUB_REF | cut -d"/" -f3)" >> $GITHUB_ENV
+
+      - name: Setup dependencies
+        run: |
+          sudo apt-get install -y clang-format
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Housekeeping
+        run: |
+          cd $GITHUB_WORKSPACE
+          git config --global --add safe.directory /__w/DAGMC/DAGMC
+          find src/ \( -name "*.hpp" -o -name "*.cpp" -o -name "*.hh" -o -name "*.cc" -o -name "*.h" \) \
+              \( -not -path "src/gtest*" -not -path "src/mcnp/mcnp?/Source/*" -not -path "src/pyne*" \)  \
+              -exec clang-format -style=file -i {} \;
+          clang_diffs=`git status --porcelain`
+          if [ -z "${clang_diffs}" ]; then
+            echo -e "\033[32mStyle guide checker passed!\033[0m"
+          else
+            echo -e "\033[1;31mERROR: Style guide checker failed. Please run clang-format.\033[0m"
+            echo
+            echo -e "\033[33mClang diffs:\033[0m"
+            echo "${clang_diffs}"
+            echo
+            echo -e "\033[33mGit diff:\033[0m"
+            git diff
+            echo
+            echo -e "\033[1;31mPlease fix the style guide and commit the result.\033[0m"
+            echo
+            echo "You can use the following command to format all files at once."
+            echo
+            echo "find src/ \\( -name \"*.hpp\" -o -name \"*.cpp\" -o -name \"*.hh\" -o -name \"*.cc\" -o -name \"*.h\" \\) \\"
+            echo "              \\( -not -path \"src/gtest*\" -not -path \"src/mcnp/mcnp?/Source/*\" -not -path \"src/pyne*\" \\) \\"
+            echo "              -exec clang-format -style=file -i {} \\;"
+            echo 
+            echo "This command will automatically format your code according to the project's style guide."
+            exit 1
+          fi

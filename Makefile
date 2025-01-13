@@ -7,7 +7,7 @@ GH_SOURCE_BRANCH  = develop
 # Repository branch that contains the rendered HTML
 GH_PUBLISH_BRANCH = gh-pages
 # Repository that contains the rendered HTML
-GH_UPSTREAM_URL   = https://github.com/svalinn/DAGMC
+GH_UPSTREAM_URL   = git@github.com:svalinn/DAGMC
 # Directory that contains the rendered HTML
 BUILDDIR          = gh-build
 # Sphinx executable
@@ -15,7 +15,7 @@ SPHINXBUILD       = sphinx-build
 # Sphinx options
 SPHINXOPTS        =
 
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(GH_SOURCE_DIR)
+ALLSPHINXOPTS = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(GH_SOURCE_DIR)
 
 help:
 	@echo "Please use \"make <target\" where <target> is one of"
@@ -27,7 +27,7 @@ clean:
 	-rm -rf $(BUILDDIR)
 
 html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)
+	$(SPHINXBUILD) -nvW -b html $(ALLSPHINXOPTS) $(BUILDDIR)
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)."
 

@@ -1,3 +1,5 @@
+message("")
+
 set(LINK_LIBS)
 
 # Source files
@@ -11,8 +13,8 @@ file(GLOB SRC_FILES
 if (BUILD_MCNP_PYNE_SOURCE)
   message(STATUS "Building DAG-MCNP5 with PyNE mesh source routine support")
   # Remove MCNP's source.F90 file
-  list(FILTER SRC_FILES EXCLUDE REGEX "/source.F90")
-  file(GLOB SRC_FILES ${SRC_FILES} "pyne_source/*.cpp" "pyne_source/*.F90")
+  list(REMOVE_ITEM SRC_FILES "${CMAKE_CURRENT_LIST_DIR}/Source/src/source.F90")
+  list(APPEND SRC_FILES "pyne_source/source.F90")
 endif ()
 
 # Figure out which version of MCNP we're compiling based on which source files are present
@@ -50,7 +52,6 @@ set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "-O1 -g")
 
 # C compiler flags
 if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
-  #set(CMAKE_C_FLAGS "${CMAKE_Fortran_FLAGS} -mcmodel=medium")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pc64")
 else ()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
@@ -61,7 +62,6 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -no-vec")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -heap-arrays 1024")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -traceback")
-  #set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mcmodel=medium")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -pc64")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -r8")
 else ()
@@ -136,8 +136,9 @@ endif ()
 # MPI
 if (BUILD_MCNP_MPI)
   find_package(MPI REQUIRED)
-  file(GLOB SRC_FILES ${SRC_FILES} "Source/dotcomm/src/*.F90")
-  file(GLOB SRC_FILES ${SRC_FILES} "Source/dotcomm/src/internals/mpi/*.c")
+  file(GLOB SRC_FILES_MPI "Source/dotcomm/src/*.F90"
+                          "Source/dotcomm/src/internals/mpi/*.c")
+  list(APPEND SRC_FILES ${SRC_FILES_MPI})
   add_definitions(-DVERS="5.mpi")
   add_definitions(-DMULTP=ON)
   add_definitions(-DMPI=ON)

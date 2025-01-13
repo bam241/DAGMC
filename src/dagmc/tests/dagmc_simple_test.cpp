@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "moab/Interface.hpp"
-#include "moab/Core.hpp"
-#include "DagMC.hpp"
-
 #include <iostream>
+
+#include "DagMC.hpp"
+#include "moab/Core.hpp"
+#include "moab/Interface.hpp"
 
 using namespace moab;
 
@@ -22,25 +22,22 @@ class DagmcSimpleTest : public ::testing::Test {
 
 TEST_F(DagmcSimpleTest, dagmc_load_file) {
   DAG = new DagMC();
-  ErrorCode rval = DAG->load_file(input_file); // open the Dag file
+  ErrorCode rval = DAG->load_file(input_file);  // open the Dag file
   EXPECT_EQ(rval, MB_SUCCESS);
 }
 
 TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc) {
   /* 1 - Test with external moab, load file in DAGMC*/
   // make new moab core
-  Core* mbi = new moab::Core();
+  std::shared_ptr<Interface> mbi = std::make_shared<Core>();
   // make new dagmc into that moab
-  DagMC* dagmc = new moab::DagMC(mbi);
+  std::shared_ptr<DagMC> dagmc = std::make_shared<DagMC>(mbi);
 
   ErrorCode rval;
+
   // load a file
   rval = dagmc->load_file(input_file);
   EXPECT_EQ(rval, MB_SUCCESS);
-
-  // delete dagmc
-  delete dagmc;
-  delete mbi;
 }
 
 TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_via_moab) {
@@ -48,16 +45,12 @@ TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_via_moab) {
   // load the file into moab rather than dagmc
   ErrorCode rval;
 
-  moab::Core* mbi = new moab::Core();
+  std::shared_ptr<Interface> mbi = std::make_shared<Core>();
   rval = mbi->load_file(input_file);
   EXPECT_EQ(rval, MB_SUCCESS);
-  moab::DagMC* dagmc = new moab::DagMC(mbi);
+  std::shared_ptr<DagMC> dagmc = std::make_shared<DagMC>(mbi);
   rval = dagmc->load_existing_contents();
   EXPECT_EQ(rval, MB_SUCCESS);
-
-  // delete dagmc;
-  delete dagmc;
-  delete mbi;
 }
 
 TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_internal) {
@@ -65,11 +58,10 @@ TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_internal) {
   // make new dagmc into that moab
   ErrorCode rval;
 
-  moab::DagMC* dagmc = new moab::DagMC();
+  std::shared_ptr<DagMC> dagmc = std::make_shared<DagMC>();
   // load a file
   rval = dagmc->load_file(input_file);
   EXPECT_EQ(rval, MB_SUCCESS);
-  delete dagmc;
 }
 
 TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_build_obb) {
@@ -77,18 +69,15 @@ TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_build_obb) {
   // make new moab core
   ErrorCode rval;
 
-  moab::Core* mbi = new moab::Core();
+  std::shared_ptr<Interface> mbi = std::make_shared<Core>();
   // make new dagmc into that moab
-  DagMC* dagmc = new moab::DagMC(mbi);
+  std::shared_ptr<DagMC> dagmc = std::make_shared<DagMC>(mbi);
 
   // load a file
   rval = dagmc->load_file(input_file);
   EXPECT_EQ(rval, MB_SUCCESS);
   rval = dagmc->init_OBBTree();
   EXPECT_EQ(rval, MB_SUCCESS);
-  // delete dagmc
-  delete dagmc;
-  delete mbi;
 }
 
 TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_via_moab_build_obb) {
@@ -96,18 +85,14 @@ TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_via_moab_build_obb) {
   // load the file into moab rather than dagmc
   ErrorCode rval;
 
-  moab::Core* mbi = new moab::Core();
+  std::shared_ptr<Interface> mbi = std::make_shared<Core>();
   rval = mbi->load_file(input_file);
   EXPECT_EQ(rval, MB_SUCCESS);
-  moab::DagMC* dagmc = new moab::DagMC(mbi);
+  std::shared_ptr<DagMC> dagmc = std::make_shared<DagMC>(mbi);
   rval = dagmc->load_existing_contents();
   EXPECT_EQ(rval, MB_SUCCESS);
   rval = dagmc->init_OBBTree();
   EXPECT_EQ(rval, MB_SUCCESS);
-
-  // delete dagmc;
-  delete dagmc;
-  delete mbi;
 }
 
 TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_internal_build_obb) {
@@ -115,20 +100,19 @@ TEST_F(DagmcSimpleTest, dagmc_load_file_dagmc_internal_build_obb) {
   // make new dagmc into that moab
   ErrorCode rval;
 
-  moab::DagMC* dagmc = new moab::DagMC();
+  std::shared_ptr<DagMC> dagmc = std::make_shared<DagMC>();
   // load a file
   rval = dagmc->load_file(input_file);
   EXPECT_EQ(rval, MB_SUCCESS);
   rval = dagmc->init_OBBTree();
   EXPECT_EQ(rval, MB_SUCCESS);
-  delete dagmc;
 }
 
 TEST_F(DagmcSimpleTest, dagmc_test_obb_retreval) {
   // make new dagmc
   std::cout << "test_obb_retreval" << std::endl;
 
-  DagMC* dagmc = new moab::DagMC();
+  std::shared_ptr<DagMC> dagmc = std::make_shared<DagMC>();
 
   ErrorCode rval;
   // load a file
@@ -140,10 +124,7 @@ TEST_F(DagmcSimpleTest, dagmc_test_obb_retreval) {
   // write the file
   rval = dagmc->write_mesh("fcad", 4);
 
-  // now remove the dagmc instance a
-  delete dagmc;
-
-  dagmc = new moab::DagMC();
+  dagmc.reset(new DagMC());
   rval = dagmc->load_file("fcad");
   EXPECT_EQ(rval, MB_SUCCESS);
   rval = dagmc->init_OBBTree();
@@ -151,7 +132,6 @@ TEST_F(DagmcSimpleTest, dagmc_test_obb_retreval) {
 
   // delete the fcad file
   remove("fcad");
-  delete dagmc;
 }
 
 TEST_F(DagmcSimpleTest, dagmc_build_obb) {
@@ -176,11 +156,24 @@ TEST_F(DagmcSimpleTest, dagmc_point_in) {
   EXPECT_EQ(expect_result, result);
 }
 
+#if MOAB_VERSION_MAJOR == 5 && MOAB_VERSION_MINOR > 2
+TEST_F(DagmcSimpleTest, dagmc_find_volume) {
+  int vol_idx = 1;
+  int vol_dim = 3;
+  double xyz[3] = {0.0, 0.0, 0.0};
+  EntityHandle vol_h;
+  EntityHandle expected_vol_h = DAG->entity_by_index(vol_dim, vol_idx);
+  ErrorCode rval = DAG->find_volume(xyz, vol_h);
+  EXPECT_EQ(rval, MB_SUCCESS);
+  EXPECT_EQ(expected_vol_h, vol_h);
+}
+#endif
+
 TEST_F(DagmcSimpleTest, dagmc_test_obb_retreval_rayfire) {
   // make new dagmc
   std::cout << "test_obb_retreval and ray_fire" << std::endl;
 
-  DagMC* dagmc = new moab::DagMC();
+  std::shared_ptr<DagMC> dagmc = std::make_shared<DagMC>();
 
   ErrorCode rval;
   // load a file
@@ -192,11 +185,8 @@ TEST_F(DagmcSimpleTest, dagmc_test_obb_retreval_rayfire) {
   // write the file
   rval = dagmc->write_mesh("fcad", 4);
 
-  // now remove the dagmc instance a
-  delete dagmc;
-
   // now create new DAGMC
-  dagmc = new moab::DagMC();
+  dagmc.reset(new DagMC());
   rval = dagmc->load_file("fcad");
   EXPECT_EQ(rval, MB_SUCCESS);
   rval = dagmc->init_OBBTree();
@@ -220,11 +210,10 @@ TEST_F(DagmcSimpleTest, dagmc_test_obb_retreval_rayfire) {
   rval = DAG->ray_fire(vol_h, xyz, dir, next_surf, next_surf_dist);
   EXPECT_EQ(rval, MB_SUCCESS);
   EXPECT_NEAR(expect_next_surf_dist, next_surf_dist, eps);
-  delete dagmc;
 }
 
 TEST_F(DagmcSimpleTest, dagmc_rayfire) {
-  const double eps = 1e-6; // epsilon for test, faceting tol?
+  const double eps = 1e-6;  // epsilon for test, faceting tol?
 
   int vol_idx = 1;
   // note model is cube of side 10, centred at 0,0,0, so ray fire along
@@ -242,13 +231,13 @@ TEST_F(DagmcSimpleTest, dagmc_rayfire) {
 }
 
 TEST_F(DagmcSimpleTest, dagmc_closest_to) {
-  const double eps = 1e-6; // epsilon for test, faceting tol?
+  const double eps = 1e-6;  // epsilon for test, faceting tolerance
 
   int vol_idx = 1;
   // note model is cube of side 10, centred at 0,0,0, so ray fire along
   // any unit direction should be exactly 5.0
   double xyz[3] = {-6.0, 0.0, 0.0};
-  double distance; // distance from point to nearest surface
+  double distance;  // distance from point to nearest surface
   double expect_distance = 1.0;
   EntityHandle vol_h = DAG->entity_by_index(3, vol_idx);
 
@@ -273,4 +262,20 @@ TEST_F(DagmcSimpleTest, dagmc_test_boundary) {
   EXPECT_EQ(rval, MB_SUCCESS);
   // check ray leaving volume
   EXPECT_EQ(expect_result, result);
+}
+
+TEST_F(DagmcSimpleTest, dagmc_test_get_obb) {
+  int vol_idx = 1;
+  EntityHandle vol_h = DAG->entity_by_index(3, vol_idx);
+
+  double llc[3], urc[3];
+  ErrorCode rval = DAG->getobb(vol_h, llc, urc);
+  EXPECT_EQ(rval, MB_SUCCESS);
+
+  // hardcoded value for 'test_geom.h5m'
+  double geom_extent = 5.0;
+  for (int i = 0; i < 3; i++) {
+    EXPECT_LE(llc[i], -geom_extent);
+    EXPECT_GE(urc[i], geom_extent);
+  }
 }

@@ -10,9 +10,9 @@ Contributing
 Contributing to the DAGMC project is very straightforward. DAGMC is hosted on
 `Github <DAGMC_source_>`_ where issues and pull requests are discussed and
 merged. We use the git version control system, which could be the most
-unfamiliar aspect of ontributing for most people. The general workflow to
+unfamiliar aspect of contributing for most people. The general workflow to
 contribute to DAGMC and many other open source projects involves steps like
-this.
+this:
 
 ..  image:: workflow.png
     :height: 300
@@ -33,7 +33,7 @@ These stages are outlined below.
 Forking
 -------
 
-To start the repository must be forked. The easiest way to do this is to click
+To start, the repository must be forked. The easiest way to do this is to click
 on the "Fork" button from the `svalinn/DAGMC` branch shown below.
 
 ..  image:: workflow_fork.png
@@ -102,7 +102,7 @@ this message you can edit and submit the pull request. If you've waited a few
 tens of minutes between pushing and going to Github, you may need to create a
 pull request manually. Your pull request will launch our continuous integration
 tests, and after a short while, your changes will either pass all the tests or
-fail the some of them. The status of the tests is shown at the bottom of the
+fail some of them. The status of the tests is shown at the bottom of the
 pull request.
 
 ..  image:: github_testing.png
@@ -141,20 +141,20 @@ Testing and continuous integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We use the `Google Test <Google_test_>`_ gtest libraries to control testing of
-our code, and we use the Travis_ continuous integration system to test all
+our code, and we use the CircleCI_ continuous integration system to test all
 changes to the code. When you add features to the codebase, tests should always
 be added which prove that the capabilities that have been added work.
 
-When a developer makes a pull request on GitHub, Travis detects it and launches
-the build as specified in the ``.travis.yml`` file. Travis pulls your feature
+When a developer makes a pull request on GitHub, CircleCI detects it and launches
+the build as specified in the ``.circleci/config.yml`` file. CircleCI pulls your feature
 branch, the MOAB libraries, HDF5, etc. as required and then launches the tests.
 Each test is run in succession and failure is reported if any dependency fails
-to build or if any test fails. An example of a Travis report is shown below.
+to build or if any test fails. An example of a CircleCI report is shown below.
 
-..  image:: travis_example.png
+..  image:: circleci_example.png
     :height: 300
     :width:  600
-    :alt:    Image showing the status of the an example Travis-CI run
+    :alt:    Image showing the status of the an example CircleCI run
 
 Once the testing is complete and your changes have been verified as not breaking
 any of the existing capabilities, a reviewer will check your pull request over
@@ -184,11 +184,19 @@ C++ Style
 ~~~~~~~~~
 
 DAGMC conforms to the Google C++ style guide. We use the Astyle_ code formatter
-to make developers' lives easier. Here is how to install Astyle on Ubuntu:
+to make developers' lives easier. Here is how to install Astyle on Ubuntu 18.04:
 ::
 
-    $ wget https://launchpad.net/ubuntu/+source/astyle/3.0.1-1ubuntu1/+build/13700883/+files/astyle_3.0.1-1ubuntu1_amd64.deb
-    $ sudo dpkg -i astyle_3.0.1-1ubuntu1_amd64.deb
+    $ sudo apt install astyle
+
+If you are using a distribution of Linux other than Ubuntu 18.04, you may need
+to acquire astyle manually. This is because DAGMC requires astyle version 3, and
+not all distributions have easy access to astyle 3. This is the recommended way
+to get astyle on other versions of Ubuntu, i.e. 16.04:
+::
+
+    $ wget https://launchpad.net/ubuntu/+source/astyle/3.1-1ubuntu2/+build/14532685/+files/astyle_3.1-1ubuntu2_amd64.deb
+    $ sudo dpkg -i astyle_3.1-1ubuntu2_amd64.deb
 
 When you have added all the features you want to add, the style guide formatter
 should be run from the base level directory of the DAGMC repository like this:
@@ -196,9 +204,8 @@ should be run from the base level directory of the DAGMC repository like this:
 
     $ astyle --options=astyle_google.ini \
              --exclude=gtest \
-             --exclude=src/astyle \
-             --exclude=src/mcnp/mcnp5/Source \
-             --exclude=src/mcnp/mcnp6/Source \
+             --exclude=src/mcnp/mcnp5 \
+             --exclude=src/mcnp/mcnp6 \
              --ignore-exclude-errors \
              --recursive \
              --verbose \
@@ -216,7 +223,8 @@ If you find a bug, raise an issue on the main `svalinn/DAGMC <DAGMC_issues_>`_
 Github site. If you think you can tackle the issue yourself then please do so,
 then pull request your changes.
 
+..  _Astyle: http://astyle.sourceforge.net
 ..  _DAGMC_source: https://github.com/svalinn/DAGMC
 ..  _DAGMC_issues: https://github.com/svalinn/DAGMC/issues
 ..  _Google_test: https://code.google.com/p/googletest
-..  _Travis: https://travis-ci.org/svalinn/DAGMC
+..  _CircleCI: https://circleci.com/gh/svalinn/DAGMC

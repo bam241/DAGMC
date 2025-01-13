@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 
-#include "moab/Interface.hpp"
-#include "moab/Core.hpp"
-#include "DagMC.hpp"
-
 #include <iostream>
+
+#include "DagMC.hpp"
+#include "moab/Core.hpp"
+#include "moab/Interface.hpp"
 
 using namespace moab;
 
 using moab::DagMC;
 
-moab::DagMC* DAG;
+std::shared_ptr<moab::DagMC> DAG;
 
 static const char input_file[] = "test_geom.h5m";
 
@@ -18,7 +18,7 @@ class DagmcPointInVolTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     // Create new DAGMC instance
-    DAG = new DagMC();
+    DAG = std::make_shared<moab::DagMC>();
     // Load mesh from file
     rloadval = DAG->load_file(input_file);
     assert(rloadval == moab::MB_SUCCESS);
@@ -26,9 +26,8 @@ class DagmcPointInVolTest : public ::testing::Test {
     rval = DAG->init_OBBTree();
     assert(rval == moab::MB_SUCCESS);
   }
-  virtual void TearDown() {
-    delete DAG;
-  }
+  virtual void TearDown() {}
+
  protected:
   moab::ErrorCode rloadval;
   moab::ErrorCode rval;
@@ -59,7 +58,8 @@ int dagmc_point_in_vol_dir(double origin[3], double dir[3], int vol_idx) {
   double next_surf_dist;
   EntityHandle next_surf;
 
-  // normalise the vector
+  // direction vectors are always interpreted as unit vectors - make sure this
+  // one is normalized
   double dir_norm = (dir[0] * dir[0]) + (dir[1] * dir[1]) + (dir[2] * dir[2]);
 
   dir[0] = dir[0] / sqrt(dir_norm);

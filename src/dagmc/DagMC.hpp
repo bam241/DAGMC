@@ -1,21 +1,27 @@
 #ifndef MOABMC_HPP
 #define MOABMC_HPP
 
-#include "MBTagConventions.hpp"
-#include "moab/CartVect.hpp"
-#include "moab/Range.hpp"
-#include "moab/Core.hpp"
-#include "moab/GeomUtil.hpp"
-#include "moab/FileOptions.hpp"
-#include "moab/Interface.hpp"
-#include "moab/GeomTopoTool.hpp"
-#include "moab/GeomQueryTool.hpp"
-#include "DagMCVersion.hpp"
-
-#include <vector>
-#include <map>
-#include <string>
 #include <assert.h>
+
+#include <limits>
+#include <map>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "DagMCVersion.hpp"
+#include "MBTagConventions.hpp"
+#include "logger.hpp"
+#include "moab/CartVect.hpp"
+#include "moab/Core.hpp"
+#include "moab/FileOptions.hpp"
+#include "moab/GeomQueryTool.hpp"
+#include "moab/GeomTopoTool.hpp"
+#include "moab/GeomUtil.hpp"
+#include "moab/Interface.hpp"
+#include "moab/Range.hpp"
 
 class RefEntity;
 
@@ -25,14 +31,25 @@ struct DagmcVolData {
   std::string comp_name;
 };
 
+namespace double_down {
+class RayTracingInterface;
+}
 
 namespace moab {
 
+static const int vertex_handle_idx = 0;
+static const int curve_handle_idx = 1;
+static const int surfs_handle_idx = 2;
+static const int vols_handle_idx = 3;
+static const int groups_handle_idx = 4;
+static const std::string GRAVEYARD_NAME = "mat:graveyard";
+
 class CartVect;
+class GeomQueryTool;
 
 /**\brief
  *
- * In sectction 1, the public interface you will find all the functions needed
+ * In section 1, the public interface you will find all the functions needed
  * for problem setup. For the typical MC code, the order of function calls
  * required to fully populate DAGMC ready to run are
  *
@@ -41,13 +58,13 @@ class CartVect;
  *
  * Modifications were made to init_OBBTree which allows the functions of
  * init_OBBTree to be called without having used init_OBBTree. For example
- * if you would like access to be able to call DAG->point_in_volume() but without
- * having an implicit compliment you need only call
+ * if you would like access to be able to call DAG->point_in_volume() but
+ * without having an implicit compliment you need only call
  *
  *   1) DAG->load_file();
  *   2) DAG->setup_obb();
  *
- * Similarly, if you need access to problem indices only then, one may call
+ * Similarly, if you need access to problem indices only, one may call
  * load_file followed by setup_indices.
  *
  *   1) DAG->load_file();
@@ -57,14 +74,24 @@ class CartVect;
 class DagMC {
  public:
   // Constructor
-  DagMC(Interface* mb_impl = NULL, double overlap_tolerance = 0., double numerical_precision = .001);
+  DagMC(std::shared_ptr<Interface> mb_impl = nullptr,
+        double overlap_tolerance = 0., double numerical_precision = .001,
+        int verbosity = 1);
+  // Deprecated Constructor
+  [[deprecated(
+      "Replaced by DagMC(std::shared_ptr<Interface> mb_impl, ... "
+      ")")]] DagMC(Interface* mb_impl, double overlap_tolerance = 0.,
+                   double numerical_precision = .001, int verbosity = 1);
   // Destructor
   ~DagMC();
 
   /** Return the version of this library */
   static float version(std::string* version_string = NULL);
   /** Get subversion revision of this file (DagMC.hpp) */
-  static unsigned int interface_revision();
+  [[deprecated]] static unsigned int interface_revision() { return 0; }
+
+  /** Git revision of DAGMC */
+  inline std::string git_sha() { return DAGMC_GIT_SHA; }
 
   /* SECTION I: Geometry Initialization */
 
@@ -74,17 +101,18 @@ class DagMC {
    * In case this is a solid model geometry file, it will pass
    * the facet_tolerance option as guidance for the faceting engine.
    *\param cfile the file name to be loaded
-   *\param facet_tolerance the faceting tolerance guidance for the faceting engine
-   *\return - MB_SUCCESS if file loads correctly
+   *\param facet_tolerance the faceting tolerance guidance for the faceting
+   *engine \return - MB_SUCCESS if file loads correctly
    *        - other MB ErrorCodes returned from MOAB
    *
-   * Note: When loading a prexisting file with an OBB_TREE tag, a number of unspoken
-   * things happen that one should be aware of.
+   * Note: When loading a prexisting file with an OBB_TREE tag, a number of
+   *unspoken things happen that one should be aware of.
    *
-   * 1) The file is loaded and when we query the meshset, we find entities with the OBB_TREE tag
-   * 2) The OBBTreeTool assumes that any children of the entity being queried in a ray intersect sets
-   *     operation are fair game, the surface meshesets have triangles as members, but OBB's as children
-   *     but no querying is done, just assumtions that the tags exist.
+   * 1) The file is loaded and when we query the meshset, we find entities with
+   *the OBB_TREE tag 2) The OBBTreeTool assumes that any children of the entity
+   *being queried in a ray intersect sets operation are fair game, the surface
+   *meshsets have triangles as members, but OBBs as children but no querying is
+   *done, just assumptions that the tags exist.
    */
   ErrorCode load_file(const char* cfile);
 
@@ -100,16 +128,17 @@ class DagMC {
    */
   ErrorCode load_existing_contents();
 
-  /**\brief initializes the geometry and OBB tree structure for ray firing acceleration
+  /**\brief initializes the geometry and OBB tree structure for ray firing
+   * acceleration
    *
-   * This method can be called after load_file to fully initialize DAGMC.  It calls
-   * methods to set up the geometry, create the implicit complement, generate an
-   * OBB tree from the faceted representation of the geometry, and build the
-   * cross-referencing indices.
+   * This method can be called after load_file to fully initialize DAGMC.  It
+   * calls methods to set up the geometry, create the implicit complement,
+   * generate an OBB tree from the faceted representation of the geometry, and
+   * build the cross-referencing indices.
    */
   ErrorCode init_OBBTree();
 
-  /**\brief finds or creates the implicit complimennt
+  /**\brief finds or creates the implicit complement
    *
    * This method calls the GeomTopoTool->get_implicit_complement which will
    * return the IC if it already exists. If the IC doesn't exist, it will
@@ -137,55 +166,277 @@ class DagMC {
    */
   ErrorCode setup_indices();
 
+  /**\brief Removes the graveyard if one is present. */
+  ErrorCode remove_graveyard();
+
+  /**\brief Create a graveyard (a volume representing the volume boundary).
+   *
+   * Create a cuboid volume marked with metadata indicating it is the boundary
+   * of the DAGMC model. This method will fail if a graveyard volume already
+   * exists and `overwrite` is not true. Requires BVH tree's existence.
+   *
+   */
+  ErrorCode create_graveyard(bool overwrite = false);
+
+  /** Returns true if the model has a graveyard volume, false if not */
+  bool has_graveyard();
+
+  /** Returns true if the model has any trees, false if not */
+  bool has_acceleration_datastructures();
+
+  /** Retrieve the graveyard group on the model if it exists */
+  ErrorCode get_graveyard_group(EntityHandle& graveyard_group);
 
  private:
+  /** convenience function for converting a bounding box into a box of triangles
+   *  with outward facing normals and setting up set structure necessary for
+   *  representation as a geometric entity
+   */
+  ErrorCode box_to_surf(const double llc[3], const double urc[3],
+                        EntityHandle& surface_set);
+
+  /**\brief Removes the BVH for the specified volume */
+  ErrorCode remove_bvh(EntityHandle volume, bool unjoin_vol = false);
+
+  /**\brief Builds the BVH for a specified volume */
+  ErrorCode build_bvh(EntityHandle volume);
+
   /** loading code shared by load_file and load_existing_contents */
   ErrorCode finish_loading();
 
   /* SECTION II: Fundamental Geometry Operations/Queries */
  public:
-
   /** The methods in this section are thin wrappers around methods in the
    *  GeometryQueryTool.
    */
+
   typedef GeomQueryTool::RayHistory RayHistory;
 
+  /**
+   * @brief Fires a ray from a starting point in a given direction and returns
+   * the next surface hit.
+   *
+   * @param volume The volume within which the ray is fired.
+   * @param ray_start A 3-element array representing the starting point of the
+   * ray.
+   * @param ray_dir A 3-element array representing the unit direction of the
+   * ray.
+   * @param[out] next_surf The handle of the next surface hit by the ray.
+   * @param[out] next_surf_dist The distance from the ray start to the next
+   * surface.
+   * @param history Optional. A pointer to a RayHistory object for storing the
+   * ray's path.
+   * @param dist_limit Optional. The maximum distance the ray should travel.
+   * Default is 0, which means no limit.
+   * @param ray_orientation Optional. The orientation triangle normals
+   * considered valid for a hit.Default is 1 (forward).
+   * @param stats Optional. A pointer to a TrvStats object for storing traversal
+   * statistics of the ray. Default is NULL.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode ray_fire(const EntityHandle volume, const double ray_start[3],
                      const double ray_dir[3], EntityHandle& next_surf,
-                     double& next_surf_dist,
-                     RayHistory* history = NULL,
+                     double& next_surf_dist, RayHistory* history = NULL,
                      double dist_limit = 0, int ray_orientation = 1,
                      OrientedBoxTreeTool::TrvStats* stats = NULL);
 
+  /**
+   * @brief Determines whether a given point is inside a specified volume.
+   *
+   * @param volume The volume within which the point is being tested.
+   * @param xyz A 3-element array representing the coordinates of the point.
+   * @param[out] result The result of the operation. It will be set to 1 if the
+   * point is inside the volume and 0 if it is outside.
+   * @param uvw Optional. A 3-element array representing the unit direction from
+   * the point to the volume. Default is NULL. A randomly generated direction
+   * will be used if not provided.
+   * @param history Optional. A pointer to a RayHistory object for masking out
+   * previously hit triangles. Default is NULL.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode point_in_volume(const EntityHandle volume, const double xyz[3],
                             int& result, const double* uvw = NULL,
                             const RayHistory* history = NULL);
-
+  /**
+   * @brief Determines whether a given point is inside a specified volume. This
+   * function is slower than point_in_volume.
+   *
+   * This method is adapted from "Point in Polyhedron Testing Using Spherical
+   * Polygons", Paulo Cezar Pinto Carvalho and Paulo Roma Cavalcanti, _Graphics
+   * Gems V_, pg. 42. The original algorithm was described in "An Efficient
+   * Point In Polyhedron Algorithm", Jeff Lane, Bob Magedson, and Mike Rarick,
+   * _Computer Vision, Graphics, and Image Processing 26_, pg. 118-225, 1984.
+   *
+   * @param volume The volume within which the point is being tested.
+   * @param xyz A 3-element array representing the coordinates of the point.
+   * @param[out] result The result of the operation. It will be set to 1 if the
+   * point is inside the volume and 0 if it is outside.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode point_in_volume_slow(const EntityHandle volume, const double xyz[3],
                                  int& result);
 
+#if MOAB_VERSION_MAJOR == 5 && MOAB_VERSION_MINOR > 2
+  /**
+   * @brief Finds the volume containing a given point.
+   *
+   * @param xyz A 3-element array representing the coordinates of the point.
+   * @param[out] volume The volume containing the point.
+   * @param uvw Optional. A 3-element array representing the unit direction to
+   * be used when firing a test ray. Default is NULL. If no value is provided
+   * a random direction for the ray will be generated.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
+  ErrorCode find_volume(const double xyz[3], EntityHandle& volume,
+                        const double* uvw = NULL);
+#endif
+
+  /**
+   * @brief Given a ray starting at a surface of a volume, check whether the ray
+   * enters or exits the volume.
+   *
+   * This function is most useful for rays that change directions at a surface
+   * crossing. It can be used to check whether a direction change redirects the
+   * ray back into the originating volume.
+   *
+   * @param volume The volume to be tested.
+   * @param surface The surface to be tested.
+   * @param xyz A 3-element array representing the coordinates of the point.
+   * @param uvw A 3-element array representing the unit direction from the point
+   * to the volume.
+   * @param[out] result The result of the operation. Set to 1 if ray is entering
+   * volume, or 0 if it is leaving.
+   * @param history If present and non-empty, the history is used to look up the
+   * surface facet at which the ray begins. Absent a history, the facet nearest
+   * to xyz will be looked up. The history should always be provided if
+   * available, as it avoids the computational expense of a nearest-facet query.
+   * Default is NULL.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode test_volume_boundary(const EntityHandle volume,
                                  const EntityHandle surface,
                                  const double xyz[3], const double uvw[3],
-                                 int& result,
-                                 const RayHistory* history = NULL);
+                                 int& result, const RayHistory* history = NULL);
 
+  /**
+   * @brief Finds the point in a specified volume that is closest to a given
+   * location.
+   *
+   * @param volume The volume to be searched.
+   * @param point A 3-element array representing the coordinates of the
+   * location.
+   * @param[out] result The distance from the location to the closest point in
+   * the volume.
+   * @param[out] surface Optional. The handle of the surface on which the
+   * closest point lies. Default is 0.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode closest_to_location(EntityHandle volume, const double point[3],
                                 double& result, EntityHandle* surface = 0);
 
+  /**
+   * @brief Measures the volume of a specified volume.
+   *
+   * @param volume The volume to be measured.
+   * @param[out] result The measured volume.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode measure_volume(EntityHandle volume, double& result);
 
+  /**
+   * @brief Measures the area of a specified surface.
+   *
+   * @param surface The surface to be measured.
+   * @param[out] result The measured area.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode measure_area(EntityHandle surface, double& result);
 
+  /**
+   * @brief Determines the sense of one or more surfaces with respect to a
+   * specified volume.
+   *
+   * This method assumes that the surfaces passed in are part of the volume.
+   *
+   * @param volume The volume with respect to which the sense is determined.
+   * @param num_surfaces The number of surfaces for which to determine the
+   * sense.
+   * @param surfaces An array of handles of the surfaces for which to determine
+   * the sense.
+   * @param[out] senses_out An array in which to store the determined senses.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode surface_sense(EntityHandle volume, int num_surfaces,
                           const EntityHandle* surfaces, int* senses_out);
 
+  /**
+   * @brief Determines the sense of a surface with respect to a specified
+   * volume.
+   *
+   * This method assumes that the surface passed in is part of the volume.
+   *
+   * @param volume The volume with respect to which the sense is determined.
+   * @param surface The handle of the surface for which to determine the sense.
+   * @param[out] sense_out The determined sense.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode surface_sense(EntityHandle volume, EntityHandle surface,
                           int& sense_out);
 
+  /**
+   * @brief Returns the normal vector of a surface at the specified point. from
+   * the ray origin in a specified direction. It is assumed that the specified
+   * point is on the surface.
+   *
+   * This method first identifies which triangle contains this point and then
+   * calculates the unit outward normal of that triangle.  The triangle of the
+   * provided volume that is nearest the provided point is used for this
+   * calculation. The search for that triangle can be circumvented by providing
+   * a RayHistory, in which case the last triangle of the history will be used.
+   *
+   * @param surf The surface for which a normal vector is determined.
+   * @param xyz A 3-element array representing the coordinates of the point.
+   * @param angle[out] A 3-element array in which to store the determined
+   * surface normal.
+   * @param history Optional. A pointer to a RayHistory object storing
+   * previously hit triangles. Default is NULL.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode get_angle(EntityHandle surf, const double xyz[3], double angle[3],
                       const RayHistory* history = NULL);
 
+  /**
+   * @brief Finds the volume adjacent to a specified surface and volume.
+   *
+   * @param surface The surface across which to find the adjacent volume.
+   * @param old_volume The volume from which to find the adjacent volume.
+   * @param[out] new_volume The handle of the adjacent volume.
+   *
+   * @return Returns an ErrorCode indicating the success or failure of the
+   * operation.
+   */
   ErrorCode next_vol(EntityHandle surface, EntityHandle old_volume,
                      EntityHandle& new_volume);
 
@@ -193,47 +444,50 @@ class DagMC {
  public:
   /** Most calling apps refer to geometric entities with a combination of
    *  base-1/0 ordinal index (or rank) and global ID (or name).
-   *  DagMC also has an internal EntityHandle reference to each geometric entity.
-   *  These method provide ways to translate from one to the other.
+   *  DagMC also has an internal EntityHandle reference to each geometric
+   * entity. These method provide ways to translate from one to the other.
    */
 
   /** map from dimension & global ID to EntityHandle */
-  EntityHandle entity_by_id(int dimension, int id);
+  EntityHandle entity_by_id(int dimension, int id) const;
   /** map from dimension & base-1 ordinal index to EntityHandle */
-  EntityHandle entity_by_index(int dimension, int index);
+  EntityHandle entity_by_index(int dimension, int index) const;
   /** map from dimension & base-1 ordinal index to global ID */
-  int id_by_index(int dimension, int index);
+  int id_by_index(int dimension, int index) const;
   /** PPHW: Missing dim & global ID ==> base-1 ordinal index */
   /** map from EntityHandle to base-1 ordinal index */
-  int index_by_handle(EntityHandle handle);
+  int index_by_handle(EntityHandle handle) const;
   /** map from EntityHandle to global ID */
-  int get_entity_id(EntityHandle this_ent);
+  int get_entity_id(EntityHandle this_ent) const;
 
-  /**\brief get number of geometric sets corresponding to geometry of specified dimension
+  /**\brief get number of geometric sets corresponding to geometry of specified
+   *dimension
    *
-   * For a given dimension (e.g. dimension=3 for volumes, dimension=2 for surfaces)
-   * return the number of entities of that dimension
-   *\param dimension the dimensionality of the entities in question
-   *\return integer number of entities of that dimension
+   * For a given dimension (e.g. dimension=3 for volumes, dimension=2 for
+   *surfaces) return the number of entities of that dimension \param dimension
+   *the dimensionality of the entities in question \return integer number of
+   *entities of that dimension
    */
-  unsigned int num_entities(int dimension);
+  unsigned int num_entities(int dimension) const;
 
  private:
+  /** get all group sets on the model */
+  ErrorCode get_groups(Range& groups);
+
   /** build internal index vectors that speed up handle-by-id, etc. */
   ErrorCode build_indices(Range& surfs, Range& vols);
 
-
   /* SECTION IV: Handling DagMC settings */
  public:
-
   /** retrieve overlap thickness */
-  double overlap_thickness() { return GQT->get_overlap_thickness(); }
+  double overlap_thickness();
   /** retrieve numerical precision */
-  double numerical_precision() { return GQT->get_numerical_precision(); }
+  double numerical_precision();
   /** retrieve faceting tolerance */
   double faceting_tolerance() { return facetingTolerance; }
 
-  /** Attempt to set a new overlap thickness tolerance, first checking for sanity */
+  /** Attempt to set a new overlap thickness tolerance, first checking for
+   * sanity */
   void set_overlap_thickness(double new_overlap_thickness);
 
   /** Attempt to set a new numerical precision , first checking for sanity
@@ -241,32 +495,33 @@ class DagMC {
    */
   void set_numerical_precision(double new_precision);
 
-
   /* SECTION V: Metadata handling */
   /** Detect all the property keywords that appear in the loaded geometry
    *
    *  @param keywords_out The result list of keywords.  This list could be
    *        validly passed to parse_properties().
    */
-  ErrorCode detect_available_props(std::vector<std::string>& keywords_out, const char* delimiters = "_");
+  ErrorCode detect_available_props(std::vector<std::string>& keywords_out,
+                                   const char* delimiters = "_");
 
   /** Parse properties from group names per metadata syntax standard
    *
-   *  @param keywords A list of keywords to parse.  These are considered the canonical
-   *                  names of the properties, and constitute the valid inputs to
+   *  @param keywords A list of keywords to parse.  These are considered the
+   * canonical names of the properties, and constitute the valid inputs to
    *                  has_prop() and prop_value().
-   *  @param delimiters An array of characters the routine will use to split the groupname
-   *                    into properties.
-   *  @param synonyms An optional mapping of synonym keywords to canonical keywords.
-   *                  This allows more than one group name keyword to take on the same
+   *  @param delimiters An array of characters the routine will use to split the
+   * groupname into properties.
+   *  @param synonyms An optional mapping of synonym keywords to canonical
+   * keywords. This allows more than one group name keyword to take on the same
    *                  meaning
-   *                  e.g. if synonyms["rest.of.world"] = "graveyard", then volumes
-   *                  in the "rest.of.world" group will behave as if they were in a
-   *                  group named "graveyard".
+   *                  e.g. if synonyms["rest.of.world"] = "graveyard", then
+   * volumes in the "rest.of.world" group will behave as if they were in a group
+   * named "graveyard".
    */
-  ErrorCode parse_properties(const std::vector<std::string>& keywords,
-                             const std::map<std::string, std::string>& synonyms = no_synonyms,
-                             const char* delimiters = "_");
+  ErrorCode parse_properties(
+      const std::vector<std::string>& keywords,
+      const std::map<std::string, std::string>& synonyms = no_synonyms,
+      const char* delimiters = "_");
 
   /** Get the value of a property on a volume or surface
    *
@@ -274,22 +529,24 @@ class DagMC {
    *  @param prop The canonical property name
    *  @param value Output parameter, the value of the property.  If no value was
    *               set on the handle, this will be the empty string.
-   *  @return MB_TAG_NOT_FOUND if prop is invalid.  Otherwise return any errors from
-   *          MOAB, or MB_SUCCESS if successful
+   *  @return MB_TAG_NOT_FOUND if prop is invalid.  Otherwise return any errors
+   * from MOAB, or MB_SUCCESS if successful
    */
-  ErrorCode prop_value(EntityHandle eh, const std::string& prop, std::string& value);
+  ErrorCode prop_value(EntityHandle eh, const std::string& prop,
+                       std::string& value);
 
   /** Get the value of a property on a volume or surface
    *
    *  @param eh The entity handle to get a property value on
    *  @param prop The canonical property name
-   *  @param values Output parameter, the values of the property will be appended to this list.  If no value was
-   *                set on the handle, no entries will be added.
-   *  @return MB_TAG_NOT_FOUND if prop is invalid.  Otherwise return any errors from
-   *          MOAB, or MB_SUCCESS if successful
+   *  @param values Output parameter, the values of the property will be
+   * appended to this list.  If no value was set on the handle, no entries will
+   * be added.
+   *  @return MB_TAG_NOT_FOUND if prop is invalid.  Otherwise return any errors
+   * from MOAB, or MB_SUCCESS if successful
    */
   ErrorCode prop_values(EntityHandle eh, const std::string& prop,
-                        std::vector< std::string >& value);
+                        std::vector<std::string>& value);
 
   /** Return true if a volume or surface has the named property set upon it
    *
@@ -303,42 +560,56 @@ class DagMC {
   /** Get a list of all unique values assigned to a named property on any entity
    *
    *  @param prop The canonical property name
-   *  @param return_list Output param, a list of unique strings that are set as values for this property
-   *  @return MB_TAG_NOT_FOUND if prop is invalid.  Otherwise return any errors from
-   *          MOAB, or MB_SUCCESS if succesful
+   *  @param return_list Output param, a list of unique strings that are set as
+   * values for this property
+   *  @return MB_TAG_NOT_FOUND if prop is invalid.  Otherwise return any errors
+   * from MOAB, or MB_SUCCESS if succesful
    */
-  ErrorCode get_all_prop_values(const std::string& prop, std::vector<std::string>& return_list);
+  ErrorCode get_all_prop_values(const std::string& prop,
+                                std::vector<std::string>& return_list);
 
   /** Get a list of all entities which have a given property
    *
    *  @param prop The canonical property name
-   *  @param return_list Output param, a list of entity handles that have this property
-   *  @param dimension If nonzero, entities returned will be restricted to the given dimension,
-   *                   i.e. 2 for surfaces and 3 for volumes
-   *  @parm value If non-NULL, only entities for which the property takes on this value will be returned.
-   *  @return MB_TAG_NOT_FOUND if prop is invalid.  Otherwise return any errors from
-   *          MOAB, or MB_SUCCESS if succesful
+   *  @param return_list Output param, a list of entity handles that have this
+   * property
+   *  @param dimension If nonzero, entities returned will be restricted to the
+   * given dimension, i.e. 2 for surfaces and 3 for volumes
+   *  @parm value If non-NULL, only entities for which the property takes on
+   * this value will be returned.
+   *  @return MB_TAG_NOT_FOUND if prop is invalid.  Otherwise return any errors
+   * from MOAB, or MB_SUCCESS if successful
    */
-  ErrorCode entities_by_property(const std::string& prop, std::vector<EntityHandle>& return_list,
-                                 int dimension = 0, const std::string* value = NULL);
-
+  ErrorCode entities_by_property(const std::string& prop,
+                                 std::vector<EntityHandle>& return_list,
+                                 int dimension = 0,
+                                 const std::string* value = NULL);
+  /**
+   * @brief Checks if a given volume is the implicit complement.
+   *
+   * @param volume The volume to be checked.
+   *
+   * @return Returns true if the volume is the implicit complement, false
+   * otherwise.
+   */
   bool is_implicit_complement(EntityHandle volume);
 
   /** get the tag for the "name" of a surface == global ID */
-  Tag name_tag() {return nameTag;}
+  Tag name_tag() { return nameTag; }
 
   /** Get the tag used to associate OBB trees with geometry in load_file(..).
-   * not sure what to do about the obb_tag, GTT has no concept of an obb_tag on EntitySets - PCS
+   * not sure what to do about the obb_tag, GTT has no concept of an obb_tag on
+   * EntitySets - PCS
    */
   Tag obb_tag() { return NULL; }
+  Tag category_tag();
   Tag geom_tag() { return GTT->get_geom_tag(); }
   Tag id_tag() { return GTT->get_gid_tag(); }
   Tag sense_tag() { return GTT->get_sense_tag(); }
 
  private:
-  /** tokenize the metadata stored in group names - basically borrowed from ReadCGM.cpp */
-  void tokenize(const std::string& str,
-                std::vector<std::string>& tokens,
+  /** tokenize the metadata stored in group names */
+  void tokenize(const std::string& str, std::vector<std::string>& tokens,
                 const char* delimiters = "_") const;
 
   /** a common type within the property and group name functions */
@@ -347,106 +618,156 @@ class DagMC {
   /** Store the name of a group in a string */
   ErrorCode get_group_name(EntityHandle group_set, std::string& name);
   /** Parse a group name into a set of key:value pairs */
-  ErrorCode parse_group_name(EntityHandle group_set, prop_map& result, const char* delimiters = "_");
+  ErrorCode parse_group_name(EntityHandle group_set, prop_map& result,
+                             const char* delimiters = "_");
   /** Add a string value to a property tag for a given entity */
   ErrorCode append_packed_string(Tag, EntityHandle, std::string&);
   /** Convert a property tag's value on a handle to a list of strings */
   ErrorCode unpack_packed_string(Tag tag, EntityHandle eh,
-                                 std::vector< std::string >& values);
+                                 std::vector<std::string>& values);
 
-  std::vector<EntityHandle>& surf_handles() {return entHandles[2];}
-  std::vector<EntityHandle>& vol_handles() {return entHandles[3];}
-  std::vector<EntityHandle>& group_handles() {return entHandles[4];}
+  std::vector<EntityHandle>& surf_handles() {
+    return entHandles[surfs_handle_idx];
+  }
+  std::vector<EntityHandle>& vol_handles() {
+    return entHandles[vols_handle_idx];
+  }
+  std::vector<EntityHandle>& group_handles() {
+    return entHandles[groups_handle_idx];
+  }
 
   Tag get_tag(const char* name, int size, TagType store, DataType type,
               const void* def_value = NULL, bool create_if_missing = true);
 
   /* SECTION VI: Other */
  public:
-  OrientedBoxTreeTool* obb_tree() {return GTT->obb_tree();}
+  OrientedBoxTreeTool* obb_tree() { return GTT->obb_tree(); }
 
-  GeomTopoTool* geom_tool() {return GTT;}
+  std::shared_ptr<GeomTopoTool> geom_tool() { return GTT; }
 
-  ErrorCode write_mesh(const char* ffile,
-                       const int flen);
+  ErrorCode write_mesh(const char* ffile, const int flen);
 
   /** get the corners of the OBB for a given volume */
   ErrorCode getobb(EntityHandle volume, double minPt[3], double maxPt[3]);
 
   /** get the center point and three vectors for the OBB of a given volume */
-  ErrorCode getobb(EntityHandle volume, double center[3],
-                   double axis1[3], double axis2[3], double axis3[3]);
+  ErrorCode getobb(EntityHandle volume, double center[3], double axis1[3],
+                   double axis2[3], double axis3[3]);
 
   /** get the root of the obbtree for a given entity */
   ErrorCode get_root(EntityHandle vol_or_surf, EntityHandle& root);
 
   /** Get the instance of MOAB used by functions in this file. */
-  Interface* moab_instance() {return MBI;}
+  Interface* moab_instance() { return MBI; }
+  std::shared_ptr<Interface> moab_instance_sptr() {
+    if (nullptr == MBI_shared_ptr)
+      std::runtime_error("MBI instance is not defined as a shared pointer !");
+    return MBI_shared_ptr;
+  }
 
  private:
-
   /* PRIVATE MEMBER DATA */
 
+  // Shared_ptr owning *MBI (if allocated internally)
+  std::shared_ptr<Interface> MBI_shared_ptr;
+  // Use for the call to MOAB interface, should never be deleted in the DagMC
+  // instanced MBI is either externally owned or owned by the MBI_shared_ptr
   Interface* MBI;
   bool moab_instance_created;
 
-  GeomTopoTool* GTT;
-  GeomQueryTool* GQT;
+  std::shared_ptr<GeomTopoTool> GTT;
+  // type alias for ray tracing engine
+#ifdef DOUBLE_DOWN
+  using RayTracer = double_down::RayTracingInterface;
+#else
+  using RayTracer = GeomQueryTool;
+#endif
+
+  std::unique_ptr<RayTracer> ray_tracer;
 
  public:
-  Tag  nameTag, facetingTolTag;
+  Tag nameTag, facetingTolTag;
+
  private:
   /** store some lists indexed by handle */
   std::vector<EntityHandle> entHandles[5];
-  /** lowest-valued handle among entity sets representing surfs and vols */
-  EntityHandle setOffset;
-  /** entity index (contiguous 1-N indices); indexed like rootSets */
-  std::vector<int> entIndices;
+  /** surface and volume mapping from EntitiyHandle to DAGMC index */
+  std::unordered_map<EntityHandle, int> entIndices;
   /** corresponding geometric entities; also indexed like rootSets */
   std::vector<RefEntity*> geomEntities;
 
   /* metadata */
-  /** empty synonym map to provide as a default argument to parse_properties() */
+  /** empty synonym map to provide as a default argument to parse_properties()
+   */
   static const std::map<std::string, std::string> no_synonyms;
   /** map from the canonical property names to the tags representing them */
   std::map<std::string, Tag> property_tagmap;
 
   char implComplName[NAME_TAG_SIZE];
 
-  double facetingTolerance, defaultFacetingTolerance;
+  double facetingTolerance;
 
   /** vectors for point_in_volume: */
   std::vector<double> disList;
-  std::vector<int>    dirList;
+  std::vector<int> dirList;
   std::vector<EntityHandle> surList, facList;
-};
 
-inline EntityHandle DagMC::entity_by_index(int dimension, int index) {
-  assert(2 <= dimension && 3 >= dimension && (unsigned) index < entHandles[dimension].size());
+  /** logger **/
+  DagMC_Logger logger;
+
+  // axis-aligned box used to track geometry bounds
+  // (internal use only)
+  struct BBOX {
+    constexpr static double INFTY{std::numeric_limits<double>::max()};
+
+    double lower[3] = {INFTY, INFTY, INFTY};
+    double upper[3] = {-INFTY, -INFTY, -INFTY};
+
+    /** ensure box corners are valid */
+    bool valid() {
+      return (lower[0] <= upper[0] && lower[1] <= upper[1] &&
+              lower[2] <= upper[2]);
+    }
+
+    /** update box to ensure the provided point is contained */
+    void update(double x, double y, double z) {
+      lower[0] = x < lower[0] ? x : lower[0];
+      lower[1] = y < lower[1] ? y : lower[1];
+      lower[2] = z < lower[2] ? z : lower[2];
+
+      upper[0] = x > upper[0] ? x : upper[0];
+      upper[1] = y > upper[1] ? y : upper[1];
+      upper[2] = z > upper[2] ? z : upper[2];
+    }
+
+    /** expand the box by some absolute value*/
+    void expand(double bump) {
+      for (int i = 0; i < 3; i++) {
+        upper[i] += bump;
+        lower[i] -= bump;
+      }
+    }
+
+    /** update box to ensure the provided point is contained */
+    void update(double xyz[3]) { update(xyz[0], xyz[1], xyz[2]); }
+  };
+
+};  // end DagMC
+
+inline EntityHandle DagMC::entity_by_index(int dimension, int index) const {
+  assert(2 <= dimension && 3 >= dimension &&
+         (unsigned)index < entHandles[dimension].size());
   return entHandles[dimension][index];
 }
 
-inline int DagMC::index_by_handle(EntityHandle handle) {
-  assert(handle - setOffset < entIndices.size());
-  return entIndices[handle - setOffset];
+inline int DagMC::index_by_handle(EntityHandle handle) const {
+  assert(entIndices.count(handle) > 0);
+  return entIndices.at(handle);
 }
 
-inline unsigned int DagMC::num_entities(int dimension) {
-  assert(0 <= dimension && 3 >= dimension);
+inline unsigned int DagMC::num_entities(int dimension) const {
+  assert(vertex_handle_idx <= dimension && groups_handle_idx >= dimension);
   return entHandles[dimension].size() - 1;
-}
-
-inline ErrorCode DagMC::getobb(EntityHandle volume, double minPt[3], double maxPt[3]) {
-  ErrorCode rval = GTT->get_bounding_coords(volume, minPt, maxPt);
-  MB_CHK_SET_ERR(rval, "Failed to get obb for volume");
-  return MB_SUCCESS;
-}
-
-inline ErrorCode DagMC::getobb(EntityHandle volume, double center[3],
-                               double axis1[3], double axis2[3], double axis3[3]) {
-  ErrorCode rval = GTT->get_obb(volume, center, axis1, axis2, axis3);
-  MB_CHK_SET_ERR(rval, "Failed to get obb for volume");
-  return MB_SUCCESS;
 }
 
 inline ErrorCode DagMC::get_root(EntityHandle vol_or_surf, EntityHandle& root) {
@@ -455,6 +776,6 @@ inline ErrorCode DagMC::get_root(EntityHandle vol_or_surf, EntityHandle& root) {
   return MB_SUCCESS;
 }
 
-} // namespace moab
+}  // namespace moab
 
 #endif

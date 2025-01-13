@@ -3,16 +3,11 @@
 #ifndef DAGMC_KDE_KERNEL_HPP
 #define DAGMC_KDE_KERNEL_HPP
 
+#include <Eigen/Dense>
 #include <string>
 #include <vector>
 
 #include "Quadrature.hpp"
-
-// LAPACK routine for solving Ax = b using symmetric matrix with packed storage
-extern "C" {
-  void dspsv_(char* UPLO, int* N, int* NRHS, double* AP, int* IPIV, double* B,
-              int* LDB, int* INFO);
-}
 
 //===========================================================================//
 /**
@@ -157,8 +152,7 @@ class KDEKernel {
    * outside the valid domain for the boundary kernel and there is no valid
    * kernel contribution.
    */
-  virtual double boundary_correction(const double* u,
-                                     const double* p,
+  virtual double boundary_correction(const double* u, const double* p,
                                      const unsigned int* side,
                                      unsigned int num_corrections) const;
 
@@ -181,9 +175,7 @@ class KDEKernel {
    * [-1, p].  If UPPER, then the integration is performed on [-p, 1]. If
    * p >= 1 moments will be always be defined on the domain [-1, 1].
    */
-  bool compute_moments(double u,
-                       double p,
-                       unsigned int side,
+  bool compute_moments(double u, double p, unsigned int side,
                        std::vector<double>& moments) const;
 
   /**
@@ -194,7 +186,7 @@ class KDEKernel {
    */
   void get_correction_matrix2D(const std::vector<double>& ai_u,
                                const std::vector<double>& ai_v,
-                               std::vector<double>& matrix) const;
+                               Eigen::MatrixXd& matrix) const;
 
   /**
    * \brief Sets up the 4x4 matrix needed to solve for the 3D boundary kernel
@@ -206,22 +198,7 @@ class KDEKernel {
   void get_correction_matrix3D(const std::vector<double>& ai_u,
                                const std::vector<double>& ai_v,
                                const std::vector<double>& ai_w,
-                               std::vector<double>& matrix) const;
-
-  /**
-   * \brief Solve a symmetric matrix system Ax = b
-   * \param[in/out] A an NxN symmetric matrix
-   * \param[in/out] b the right-hand side vector
-   * \return true if matrix system was solved; false otherwise
-   *
-   * The matrix A should be in lower triangular format, stored by columns.
-   *
-   * On exit, A will be overwritten by the diagonal matrix obtained through
-   * the factorization method that was used to solve the matrix system.  The
-   * vector b will also be overwritten with the solution x.
-   */
-  bool solve_symmetric_matrix(std::vector<double>& A,
-                              std::vector<double>& b) const;
+                               Eigen::MatrixXd& matrix) const;
 
   /**
    * \class MomentFunction
@@ -235,7 +212,7 @@ class KDEKernel {
      * \param[in] kernel the kernel for which the moment function is desired
      */
     MomentFunction(unsigned int i, const KDEKernel& kernel)
-      : moment_index(i), kernel(kernel) {}
+        : moment_index(i), kernel(kernel) {}
 
     /**
      * \brief Evaluates the ith moment function
@@ -250,6 +227,6 @@ class KDEKernel {
   };
 };
 
-#endif // DAGMC_KDE_KERNEL_HPP
+#endif  // DAGMC_KDE_KERNEL_HPP
 
 // end of MCNP5/dagmc/KDEKernel.hpp

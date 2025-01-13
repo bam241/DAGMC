@@ -6,7 +6,7 @@ the term "DAG-MCNP" refers to both.
 
 There are three varieties of code-specific steps for DAG-MCNP:
 
-1.  Defining attributes of the geometry using Cubit/Trelis groups
+1.  Defining attributes of the geometry using Cubit groups
 2.  Defining DAGMC runtime parameters using the DAGMC input file
 3.  Specifying additional parameters on the command line
 

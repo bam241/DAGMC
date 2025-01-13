@@ -11,10 +11,11 @@ set(LINK_LIBS_EXTERN_NAMES)
 include_directories(${CMAKE_SOURCE_DIR}/src/pyne)
 include_directories(${CMAKE_SOURCE_DIR}/src/dagmc)
 include_directories(${CMAKE_BINARY_DIR}/src/dagmc)
+include_directories(${CMAKE_SOURCE_DIR}/src/uwuw)
 
 dagmc_install_library(fludag)
 
-add_subdirectory(build)
+add_subdirectory(app)
 if (BUILD_TESTS)
   add_subdirectory(tests)
 endif ()

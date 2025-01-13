@@ -10,7 +10,7 @@ which workflow suits your needs depends on which codes you expect to use and how
 much manual data transfer you wish to do.
 
 +-------------------------+----------------+----------------+
-| Feature                 | UW2 Workflow   | Basic Workflow | 
+| Feature                 | UW2 Workflow   | Basic Workflow |
 +-------------------------+----------------+----------------+
 |  Assignment of Metadata | M              |  M             |
 +-------------------------+----------------+----------------+
@@ -30,6 +30,8 @@ much manual data transfer you wish to do.
 +-------------------------+----------------+----------------+
 |  Tripoli4 Materials     | N              |  None          |
 +-------------------------+----------------+----------------+
+|  OpenMC Materials       | A              |  M             |
++-------------------------+----------------+----------------+
 
 **N** not supported, **A** automatic production at run time, **M** manually
 performed
@@ -44,10 +46,10 @@ creation.
 ..  toctree::
     :maxdepth: 1
 
-    trelis_basics
+    cubit_basics
     uw2
     codes/index
-    trelis_workflow
+    cubit_workflow
     tally
     tools
     postprocessing

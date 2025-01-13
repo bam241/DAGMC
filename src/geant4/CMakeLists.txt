@@ -1,6 +1,19 @@
 message("")
 
 find_package(Geant4 REQUIRED)
+if (Geant4_VERSION VERSION_LESS 10.4.2)
+  message(FATAL_ERROR "Discovered Geant4 Version: ${Geant4_VERSION}. \
+  Please update Geant4 version to 10.4.2 or greater.")
+endif()
+
+if ( Geant4_VERSION GREATER_EQUAL 11.0 )
+  message(STATUS "Configuring DAGMC for Geant4 version >= 11.0")
+  add_compile_definitions(GEANT4_GT_10_6=1)
+  add_compile_definitions(GEANT4_GT_11=1)
+  elseif( Geant4_VERSION GREATER_EQUAL 10.6 )
+  message(STATUS "Configuring DAGMC for Geant4 version >= 10.6")
+  add_compile_definitions(GEANT4_GT_10_6=1)
+endif()
 
 set(SRC_FILES DagSolid.cc)
 set(PUB_HEADERS DagSolid.hh)
@@ -14,7 +27,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/pyne)
 
 dagmc_install_library(dagsolid)
 
-add_subdirectory(build)
+add_subdirectory(app)
 if (BUILD_TESTS)
   add_subdirectory(tests)
 endif ()

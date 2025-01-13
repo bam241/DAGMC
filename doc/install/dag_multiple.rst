@@ -23,6 +23,7 @@ The following CMake command will build DAG-Geant4 and FluDAG as well as MPI
 versions of DAG-MCNP5 and DAG-MCNP6.
 ::
 
+<<<<<<< HEAD
     $ cmake .. -DMOAB_ROOT=$HOME/dagmc_bld/MOAB \
                -DBUILD_MCNP5=ON \
                -DBUILD_MCNP6=ON \
@@ -32,6 +33,17 @@ versions of DAG-MCNP5 and DAG-MCNP6.
                -DBUILD_FLUKA=ON \
                -DFLUKA_DIR=$FLUPRO \
                -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+=======
+    $ cmake ../src -DMOAB_DIR=$HOME/dagmc_bld/MOAB \
+                   -DBUILD_MCNP5=ON \
+                   -DBUILD_MCNP6=ON \
+                   -DBUILD_MCNP_MPI=ON \
+                   -DBUILD_GEANT4=ON \
+                   -DGEANT4_DIR=$HOME/dagmc_bld/Geant4 \
+                   -DBUILD_FLUKA=ON \
+                   -DFLUKA_DIR=$FLUPRO \
+                   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+>>>>>>> upstream/develop
 
 If the CMake configuration proceeded successfully, you are now ready to install
 DAGMC.

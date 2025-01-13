@@ -24,13 +24,13 @@ supported versions of MCNP5 are 5.1.40, 5.1.51, and 5.1.60.
     $ chmod -R u+rw Source
     $ patch -p0 < patch/mcnp516.patch
 
-Currently supported versions of MCNP6 are 6_beta2, 6.1, and 6.1.1beta.
+Currently supported versions of MCNP6 are 6_beta2, 6.1, 6.1.1beta, and 6.2.
 ::
 
     $ cd src/mcnp/mcnp6
     $ cp -r <path_to_dvd>/MCNP6/Source .
     $ chmod -R u+rw Source
-    $ patch -p0 < patch/mcnp611.patch
+    $ patch -p0 < patch/mcnp620.patch
 
 Assuming the patch or patches were succesfully applied, i.e. there were no
 warnings or errors, you are now ready to configure DAGMC to produce the desired
@@ -45,49 +45,90 @@ and/or ``-DMCNP6_DATAPATH`` cmake options must be included instead.
 **Example 1:** Build the DAGMC interfaces and DAG-MCNP5.
 ::
 
+<<<<<<< HEAD
     $ cmake .. -DMOAB_ROOT=$HOME/dagmc_bld/MOAB \
                -DBUILD_MCNP5=ON \
                -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+=======
+    $ cmake ../src -DMOAB_DIR=$HOME/dagmc_bld/MOAB \
+                   -DBUILD_MCNP5=ON \
+                   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+>>>>>>> upstream/develop
 
 **Example 2:** Build an MPI version of DAG-MCNP5.
 ::
 
+<<<<<<< HEAD
     $ cmake .. -DMOAB_ROOT=$HOME/dagmc_bld/MOAB \
                -DBUILD_MCNP5=ON \
                -DBUILD_MCNP_MPI=ON \
                -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+=======
+    $ cmake ../src -DMOAB_DIR=$HOME/dagmc_bld/MOAB \
+                   -DBUILD_MCNP5=ON \
+                   -DBUILD_MCNP_MPI=ON \
+                   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+>>>>>>> upstream/develop
 
 **Example 3:** Build the DAGMC interfaces and DAG-MCNP6.
 ::
 
+<<<<<<< HEAD
     $ cmake .. -DMOAB_ROOT=$HOME/dagmc_bld/MOAB \
                -DBUILD_MCNP6=ON \
                -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+=======
+    $ cmake ../src -DMOAB_DIR=$HOME/dagmc_bld/MOAB \
+                   -DBUILD_MCNP6=ON \
+                   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+>>>>>>> upstream/develop
 
 **Example 4:** Build an MPI version of DAG-MCNP6.
 ::
 
+<<<<<<< HEAD
     $ cmake .. -DMOAB_ROOT=$HOME/dagmc_bld/MOAB \
                -DBUILD_MCNP6=ON \
                -DBUILD_MCNP_MPI=ON \
                -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+=======
+    $ cmake ../src -DMOAB_DIR=$HOME/dagmc_bld/MOAB \
+                   -DBUILD_MCNP6=ON \
+                   -DBUILD_MCNP_MPI=ON \
+                   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+>>>>>>> upstream/develop
 
 **Example 5:** Build both DAG-MCNP5 and DAG-MCNP6.
 ::
 
+<<<<<<< HEAD
     $ cmake .. -DMOAB_ROOT=$HOME/dagmc_bld/MOAB \
                -DBUILD_MCNP5=ON \
                -DBUILD_MCNP6=ON \
                -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+=======
+    $ cmake ../src -DMOAB_DIR=$HOME/dagmc_bld/MOAB \
+                   -DBUILD_MCNP5=ON \
+                   -DBUILD_MCNP6=ON \
+                   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+>>>>>>> upstream/develop
 
 **Example 6:** Build MPI versions of both DAG-MCNP5 and DAG-MCNP6.
 ::
 
+<<<<<<< HEAD
     $ cmake .. -DMOAB_ROOT=$HOME/dagmc_bld/MOAB \
                -DBUILD_MCNP5=ON \
                -DBUILD_MCNP6=ON \
                -DBUILD_MCNP_MPI=ON \
                -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+=======
+    $ cmake ../src -DMOAB_DIR=$HOME/dagmc_bld/MOAB \
+                   -DBUILD_MCNP5=ON \
+                   -DBUILD_MCNP6=ON \
+                   -DBUILD_MCNP_MPI=ON \
+                   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH
+>>>>>>> upstream/develop
 
 If the CMake configuration proceeded successfully, you are now ready to install
 DAGMC.

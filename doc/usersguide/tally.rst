@@ -8,14 +8,14 @@ an unstructured mesh.
 Mesh production workflow
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Cubit/Trelis can be used to generate the unstructured meshes needed for tallies.
+Cubit can be used to generate the unstructured meshes needed for tallies.
 To do so, use the following steps.
 
-1.  Load the geometry you wish to mesh into Cubit/Trelis.
+1.  Load the geometry you wish to mesh into Cubit.
 2.  Use the mesh tools to produce the meshes you want.
-3.  Save the file as a .trelis or .cub file. Remember to check the "Use Legacy
-    .cub file Format" option in Trelis or Cubit.
-4.  Use MOAB's ``mbconvert`` executable to convert from the Cubit/Trelis format
+3.  Save the file as a .cub file. Remember to check the "Use Legacy
+    .cub file Format" option in Cubit.
+4.  Use MOAB's ``mbconvert`` executable to convert from the Cubit format
     to a faceted .h5m file that DAGMC can use.
 
 Here is an example of how to use ``mbconvert``:
@@ -42,21 +42,21 @@ a tetmesh tally, that the input mesh file is ``mesh.h5m``, and the results
 should be stored in ``mesh_out.h5m``.
 ::
 
-    fmesh4:n geom=dag type=unstr_track
-    fc4 dagmc inp=mesh.h5m out=mesh_out.h5m
+    fmesh4:n geom=dag
+    fc4 dagmc type=unstr_track inp=mesh.h5m out=mesh_out.h5m
 
 Other standard MCNP options can also be used, such as energy bins:
 ::
 
-    fmesh4:n geom=dag type=unstr_track
+    fmesh4:n geom=dag
              emesh=1.0 2.0 15.0
-    fc4 dagmc inp=mesh.h5m out=mesh_out.h5m
+    fc4 dagmc type=unstr_track inp=mesh.h5m out=mesh_out.h5m
 
 Or tally multipliers:
 ::
 
-    fmesh4:p geom=dag type=unstr_track
-    fc4 dagmc inp=mesh.h5m out=mesh_out.h5m
+    fmesh4:p geom=dag
+    fc4 dagmc type=unstr_track inp=mesh.h5m out=mesh_out.h5m
     fm4 -1 0 -5 -6
 
 ``mbconvert`` can be used to convert the output mesh file to a .vtk file for
@@ -76,22 +76,22 @@ can be found in `Kerry Dunn's Ph.D. thesis <KD_thesis_>`_.
 To call a KDE collision tally, use:
 ::
 
-    fmesh4:p geom=dag type=kde_coll
-    fc4 dagmc inp=mesh.h5m out=mesh_out.h5m
+    fmesh4:p geom=dag
+    fc4 dagmc type=kde_coll inp=mesh.h5m out=mesh_out.h5m
         hx=0.198 hy=0.0663 hz=0.0662
 
 To call a KDE track length tally, use:
 ::
 
-    fmesh4:p geom=dag type=kde_track
-    fc4 dagmc inp=mesh.h5m out=mesh_out.h5m
+    fmesh4:p geom=dag
+    fc4 dagmc type=kde_track inp=mesh.h5m out=mesh_out.h5m
         hx=0.198 hy=0.0663 hz=0.0662
 
 To call a KDE subtrack tally, use:
 ::
 
-    fmesh4:p geom=dag type=kde_subtrack
-    fc4 dagmc inp=mesh.h5m out=mesh_out.h5m
+    fmesh4:p geom=dag
+    fc4 dagmc type=kde_subtrack inp=mesh.h5m out=mesh_out.h5m
         hx=0.1042 hy=0.0833 hz=0.0833
         hx=0.1042 hy=0.0833 hz=0.0833
         subtracks=3 seed=11699913

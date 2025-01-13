@@ -3,8 +3,13 @@ message("")
 # Find MOAB cmake config file
 # Only used to determine the location of the HDF5 with which MOAB was built
 set(MOAB_SEARCH_DIRS)
+<<<<<<< HEAD
 file(GLOB MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS} "${MOAB_ROOT}/lib/cmake/MOAB")
 string(REPLACE "\n" ";" MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS})
+=======
+file(GLOB MOAB_SEARCH_DIRS ${MOAB_SEARCH_DIRS} "${MOAB_DIR}/lib*/cmake/MOAB")
+string(REPLACE "\n" ";" MOAB_SEARCH_DIRS "${MOAB_SEARCH_DIRS}")
+>>>>>>> upstream/develop
 find_path(MOAB_CMAKE_CONFIG
   NAMES MOABConfig.cmake
   PATHS ${MOAB_SEARCH_DIRS}
@@ -14,15 +19,20 @@ if (MOAB_CMAKE_CONFIG)
   set(MOAB_CMAKE_CONFIG ${MOAB_CMAKE_CONFIG}/MOABConfig.cmake)
   message(STATUS "MOAB_CMAKE_CONFIG: ${MOAB_CMAKE_CONFIG}")
 else ()
+<<<<<<< HEAD
   message(FATAL_ERROR "Could not find MOAB. Set -DMOAB_ROOT=<MOAB_ROOT> when running cmake or use the $MOAB_ROOT environment variable.")
+=======
+  message(FATAL_ERROR "Could not find MOAB. Set -DMOAB_DIR=<MOAB_DIR> when running cmake or use the $MOAB_DIR environment variable.")
+>>>>>>> upstream/develop
 endif ()
 
 # Find HDF5
 include(${MOAB_CMAKE_CONFIG})
-set(HDF5_ROOT ${HDF5_DIR})
-set(ENV{PATH} "${HDF5_ROOT}:$ENV{PATH}")
+set(ENV{PATH} "${HDF5_DIR}:$ENV{PATH}")
 set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_SHARED_LIBRARY_SUFFIX})
 find_package(HDF5 REQUIRED)
+# Remove HDF5 transitive dependencies that are system libraries
+list(FILTER HDF5_LIBRARIES EXCLUDE REGEX ".*lib(pthread|dl|m).*")
 set(HDF5_LIBRARIES_SHARED ${HDF5_LIBRARIES})
 # CMake doesn't let you find_package(HDF5) twice so we have to do this instead
 if (BUILD_STATIC_LIBS)
@@ -39,7 +49,14 @@ message(STATUS "HDF5_LIBRARIES_SHARED: ${HDF5_LIBRARIES_SHARED}")
 message(STATUS "HDF5_LIBRARIES_STATIC: ${HDF5_LIBRARIES_STATIC}")
 
 include_directories(${HDF5_INCLUDE_DIRS})
+<<<<<<< HEAD
 
+=======
+if(MSVC)
+    set(BUILD_STATIC_LIBS TRUE)
+    set(BUILD_SHARED_LIBS OFF)
+endif()
+>>>>>>> upstream/develop
 # Find MOAB library (shared)
 if (BUILD_SHARED_LIBS)
   set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -48,6 +65,10 @@ if (BUILD_SHARED_LIBS)
     HINTS ${MOAB_LIBRARY_DIRS}
     NO_DEFAULT_PATH
   )
+<<<<<<< HEAD
+=======
+  list(APPEND MOAB_LIBRARIES_SHARED)
+>>>>>>> upstream/develop
 endif ()
 
 # Find MOAB library (static)
@@ -58,6 +79,10 @@ if (BUILD_STATIC_LIBS)
     HINTS ${MOAB_LIBRARY_DIRS}
     NO_DEFAULT_PATH
   )
+<<<<<<< HEAD
+=======
+  list(APPEND MOAB_LIBRARIES_STATIC)
+>>>>>>> upstream/develop
 endif ()
 
 message(STATUS "MOAB_INCLUDE_DIRS: ${MOAB_INCLUDE_DIRS}")

@@ -1,3 +1,5 @@
+..  _UWUW:
+
 University of Wisconsin Unified Workflow (UWUW)
 ===============================================
 
@@ -23,7 +25,7 @@ code, since each MC code specifies materials in a different way. Instead, we tag
 groups of volumes with a name and syntax that corresponds to material
 compositions in a predefined material library.
 
-The group naming syntax for describing materials in Cubit/Trelis is:
+The group naming syntax for describing materials in Cubit is:
 ::
 
     CUBIT> group "mat:<Name of Material>"
@@ -45,7 +47,7 @@ Scoring
 Each MC code implements tallies, or scores, in very specific ways such that
 there is sometimes no equivalent to a tally you may be familiar with, code to
 code. However, there is a Cubit syntax to allow you to request scores on
-geomemtric elments. The generic form is
+geometric elments. The generic form is
 ::
 
     CUBIT> group "tally:ParticleName/ScoreType" add vol x
@@ -91,7 +93,7 @@ Particle importances
 Particle importances are in important aspect of Monte Carlo simulations and are
 used to help particles to penetrate to "important" regions of the geometry.
 There are several automatic methods to generate mesh based importances or
-weights, but if your importances are tried to the geometry, then they can be
+weights, but if your importances are tied to the geometry, then they can be
 tagged onto the geometry.
 
 The |UW2| workflow has a code agnostic way of defining importances.
@@ -160,6 +162,21 @@ now run as if it were a standard FLUKA problem
 
     $ $FLUPRO/flutil/rfluka -N0 -M5 -e mainfludag input.inp
 
+OpenMC-specific steps
+~~~~~~~~~~~~~~~~~~~~~
+
+To run a OpenMC UWUW simulation, a ``.h5m`` file containing the UWUW model
+must be present in the OpenMC run directory and a ``dagmc_universe`` present in
+the ``geometry.xml`` like so:
+::
+
+   <dagmc_universe> filename="dagmc.h5m" id="1" />
+
+OpenMC will then load the geometry and material library when setting up the simulation.
+For more information on how to use DAGMC geometries in OpenMC,
+see `here <https://github.com/openmc-dev/openmc/pull/1825>`_.
+
+
 Geant4-specific steps
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -173,7 +190,7 @@ and the number of particles to simulate. The problem is then run with
 Worked example
 ~~~~~~~~~~~~~~
 
-Open Cubit/Trelis, and let's place some volumes to create our first problem. We
+Open Cubit, and let's place some volumes to create our first problem. We
 will create 4 cubes of side 10 cm, shifting each in a different direction.
 ::
 
@@ -420,7 +437,7 @@ Dag-Geant4 run
 ~~~~~~~~~~~~~~
 
 Dag-Geant4 is probably the most trivial of all the |UW2|-enabled codes to run.
-Copy the ``vis.mac`` file from ``DAGMC/geant4/build/vis.mac``.
+Copy the ``vis.mac`` file from ``DAGMC/geant4/app/vis.mac``.
 ::
 
     $ DagGeant4 example.h5m

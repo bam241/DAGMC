@@ -1,40 +1,70 @@
 DAGMC: Direct Accelerated Geometry Monte Carlo
 ==============================================
 
-..  image:: https://travis-ci.org/svalinn/DAGMC.svg?branch=develop
-    :target: https://travis-ci.org/svalinn/DAGMC
+..  image:: https://github.com/svalinn/DAGMC/actions/workflows/linux_build_test.yml/badge.svg?branch=develop
+    :target: https://github.com/svalinn/DAGMC/actions/workflows/linux_build_test.yml
+
+..  image:: https://github.com/svalinn/DAGMC/actions/workflows/mac_build_test.yml/badge.svg?branch=develop
+    :target: https://github.com/svalinn/DAGMC/actions/workflows/mac_build_test.yml
+
+..  image:: https://github.com/svalinn/DAGMC/actions/workflows/windows_build_test.yml/badge.svg?branch=develop
+    :target: https://github.com/svalinn/DAGMC/actions/workflows/windows_build_test.yml
+
+..  image:: https://github.com/svalinn/DAGMC/actions/workflows/docker_publish.yml/badge.svg?branch=develop
+    :target: https://github.com/svalinn/DAGMC/actions/workflows/docker_publish.yml
+
+..  image:: https://anaconda.org/conda-forge/dagmc/badges/version.svg
+    :target: https://anaconda.org/conda-forge/dagmc
+
 
 Direct Accelerated Geometry Monte Carlo (DAGMC) is a software package that
 allows users to perform Monte Carlo radiation transport directly on CAD models.
 
 DAGMC has been integrated into a variety of Monte Carlo radiation codes
-including MCNP5_, MCNP6_, Geant4_, FLUKA_, Tripoli4_, and Shift_. There are also
-efforts planned to integrate DAGMC into other codes such as Serpent2_, OpenMC_,
-Phits_, and Frensie.
+including MCNP5_, MCNP6_, Geant4_, FLUKA_, Tripoli4_, OpenMC_, and Shift_. There are also
+efforts planned to integrate DAGMC into other codes such as Serpent2_,
+Phits_, and FRENSIE_.
 
-DAGMC currently relies on using the solid modeling software Cubit_ or its
-commercial counterpart, Trelis_, to prepare solid models. These packages can be
+DAGMC currently relies on using the commercial solid modeling software Cubit_ (or its
+`government-use counterpart <https://cubit.sandia.gov>`_ available from
+Sandia National Laboratories)
+to prepare solid models. These packages can be
 used to import CAD models from other tools such as SolidWorks, CATIA, etc., or
-to create geometry from scratch. DAGMC also relies on Trelis/Cubit to assign
+to create geometry from scratch. DAGMC also relies on Cubit to assign
 materials and other geometry-related information.
 
 For more information, please visit the `DAGMC website <DAGMC_>`_.
 
 Quick links:
 
-* `Install guide <http://svalinn.github.io/DAGMC/install/index.html>`_
-* `Users guide <http://svalinn.github.io/DAGMC/usersguide/index.html>`_
-* `Contributors guide <http://svalinn.github.io/DAGMC/contribute/index.html>`_
+* `Install guide <https://svalinn.github.io/DAGMC/install/index.html>`_
+* `Users guide <https://svalinn.github.io/DAGMC/usersguide/index.html>`_
+* `Contributors guide <https://svalinn.github.io/DAGMC/contribute/index.html>`_
+* `Release instructions <release.rst>`_
 
-..  _DAGMC: http://svalinn.github.io/DAGMC
-..  _Cubit: https://cubit.sandia.gov
-..  _Trelis: http://www.csimsoft.com/trelis
-..  _MCNP5: https://mcnp.lanl.gov
+**Preview CI for versions of upstream dependencies**
+
+..  image:: https://github.com/svalinn/DAGMC/actions/workflows/linux_upstream_test_moab.yml/badge.svg?branch=develop
+    :target: https://github.com/svalinn/DAGMC/actions/workflows/linux_upstream_test_moab.yml
+
+..  image:: https://github.com/svalinn/DAGMC/actions/workflows/linux_upstream_test_geant4.yml/badge.svg?branch=develop
+    :target: https://github.com/svalinn/DAGMC/actions/workflows/linux_upstream_test_geant4.yml
+
+..  image:: https://github.com/svalinn/DAGMC/actions/workflows/linux_upstream_test_double_down.yml/badge.svg?branch=develop
+    :target: https://github.com/svalinn/DAGMC/actions/workflows/linux_upstream_test_double_down.yml
+
+..  image:: https://github.com/svalinn/DAGMC/actions/workflows/linux_upstream_test_hdf5.yml/badge.svg?branch=develop
+    :target: https://github.com/svalinn/DAGMC/actions/workflows/linux_upstream_test_hdf5.yml
+
+..  _DAGMC: https://svalinn.github.io/DAGMC
+..  _Cubit: https://coreform.com/products/coreform-cubit/
+..  _MCNP5: https://laws.lanl.gov/vhosts/mcnp.lanl.gov/mcnp5.shtml
 ..  _MCNP6: https://mcnp.lanl.gov
-..  _Geant4: http://geant4.cern.ch
+..  _Geant4: https://geant4.cern.ch
 ..  _FLUKA: http://www.fluka.org/fluka.php
 ..  _Tripoli4: https://rsicc.ornl.gov/codes/ccc/ccc8/ccc-806.html
-..  _Shift: http://web.ornl.gov/sci/nsed/rnsd/rt
+..  _Shift: https://meitner.ornl.gov/doe-codes/shift
 ..  _Serpent2: http://montecarlo.vtt.fi
-..  _OpenMC: https://mit-crpg.github.io/openmc
-..  _Phits: http://phits.jaea.go.jp
+..  _OpenMC: https://docs.openmc.org
+..  _Phits: https://phits.jaea.go.jp
+..  _FRENSIE: https://github.com/FRENSIE/FRENSIE

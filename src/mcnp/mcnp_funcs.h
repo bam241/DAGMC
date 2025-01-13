@@ -1,44 +1,46 @@
 #ifndef DAGMC_MCNP_IFACE_H
 #define DAGMC_MCNP_IFACE_H
 
+#if !defined(_MSC_VER) && !defined(__MINGW32__)
+#include <sys/resource.h>
+#include <unistd.h>
+#else
+#include <io.h>
+#endif
+#include <fstream>
 #include <map>
+#include <sstream>
 #include <string>
 
-#include "moab/Interface.hpp"
 #include "moab/CartVect.hpp"
-
-#include <fstream>
-#include <sstream>
-
-#include "../uwuw/uwuw.hpp"
-#include "../pyne/pyne.h"
-#include <unistd.h>
+#include "moab/Interface.hpp"
+#include "pyne.h"
+#include "uwuw.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* initialize DAGMC from FORTRAN main
- * @param max_pbl - The maximum index of the pblcm (temporary particle state) array
- *                  This is the largest n that will arrive in calls to savpar and getpar
+ * @param max_pbl - The maximum index of the pblcm (temporary particle state)
+ * array This is the largest n that will arrive in calls to savpar and getpar
  */
-void dagmcinit_(char* cfile, int* clen,
-                char* ftol,  int* ftlen,
-                int* parallel_file_mode,
-                double* dagmc_version, int* moab_version, int* max_pbl);
+void dagmcinit_(char* cfile, int* clen, char* ftol, int* ftlen,
+                int* parallel_file_mode, double* dagmc_version,
+                int* moab_version, int* max_pbl);
 
 /* Add the current particle state to the bank */
 void dagmc_bank_push_(int* nbnk);
 
 /* Revert to the most recently banked particle state */
-void dagmc_bank_usetop_() ;
+void dagmc_bank_usetop_();
 
 /* Remove and forget the most recently banked particle state.
  * Called after dagmc_bank_usetop_() */
 void dagmc_bank_pop_(int* nbnk);
 
 /* Remove all entries in the particle bank */
-void dagmc_bank_clear_() ;
+void dagmc_bank_clear_();
 
 /* Save the current particle state to temporary index n */
 void dagmc_savpar_(int* n);
@@ -52,12 +54,12 @@ void dagmcwritefacets_(char* ffile, int* flen);
 /* parse metadata and write applications specific data for: MCNP5
  * includes the UWUW step
  */
-void dagmcwritemcnp_(char* dagmc_file, char* lfile, int* llen, const char* mcnp_version_major = "5");
+void dagmcwritemcnp_(char* dagmc_file, char* lfile, int* llen,
+                     const char* mcnp_version_major = "5");
 
 /* Get normal of surface with id *jsu at location (*xxx,*yyy,*zzz) and store
    in three doubles at ang (an arry of length 3) */
 void dagmcangl_(int* jsu, double* xxx, double* yyy, double* zzz, double* ang);
-
 
 /* Given point and direction, determine if the particle is going into
  * cell i1.  Assume the point is on the surface jsu.  Return j=0 if
@@ -65,9 +67,8 @@ void dagmcangl_(int* jsu, double* xxx, double* yyy, double* zzz, double* ang);
  * This is used as a point-in-volume query for points that are known
  * to be on a surface.
  */
-void dagmcchkcel_by_angle_(double* uuu, double* vvv, double* www,
-                           double* xxx, double* yyy, double* zzz,
-                           int* jsu, int* i1, int* j);
+void dagmcchkcel_by_angle_(double* uuu, double* vvv, double* www, double* xxx,
+                           double* yyy, double* zzz, int* jsu, int* i1, int* j);
 
 /* Point-in-volume query.  Determine if the particle at given coordinates
  * is inside or outside of cell i1.  Return j=1 if outside or on boundary,
@@ -82,10 +83,8 @@ void dagmcchkcel_(double* uuu, double* vvv, double* www, double* xxx,
  * *huge - passed definition of a large number
  * *dbmin - Output, distance to nearest surface
  */
-void dagmcdbmin_(int* ih,
-                 double* xxx, double* yyy, double* zzz,
-                 double* huge, double* dbmin);
-
+void dagmcdbmin_(int* ih, double* xxx, double* yyy, double* zzz, double* huge,
+                 double* dbmin);
 
 /* Get next Cell
  * *jsu - Surface to cross
@@ -95,16 +94,17 @@ void dagmcdbmin_(int* ih,
 void dagmcnewcel_(int* jsu, int* icl, int* iap);
 
 /**
- * Tell dagmc that a particle has changed direction at the most recently reached surface boundary,
- * and reset ray history as necessary.
- * The parameters are the new particle direction and a flag.
- * If *verify_dir_change==0, assume without checking that a direction change has actually happened.
- * If *verify_dir_change==1, compare the new uvw to the last known one, and hold on to
- * all ray history if not.  (This mode is used during electron transport,
+ * Tell dagmc that a particle has changed direction at the most recently reached
+ * surface boundary, and reset ray history as necessary. The parameters are the
+ * new particle direction and a flag. If *verify_dir_change==0, assume without
+ * checking that a direction change has actually happened. If
+ * *verify_dir_change==1, compare the new uvw to the last known one, and hold on
+ * to all ray history if not.  (This mode is used during electron transport,
  * which occasionally calls this function without having changed the direction;
  * it's less invasive to do the check in C++ instead of Fortran.)
  */
-void dagmc_surf_reflection_(double* uuu, double* vvv, double* www, int* verify_dir_change);
+void dagmc_surf_reflection_(double* uuu, double* vvv, double* www,
+                            int* verify_dir_change);
 
 void dagmc_particle_terminate_();
 
@@ -119,37 +119,38 @@ void dagmc_particle_terminate_();
  * *jap - Next intersected surface, or zero if none
  */
 void dagmctrack_(int* ih, double* uuu, double* vvv, double* www, double* xxx,
-                 double* yyy, double* zzz, double* huge, double* dls, int* jap, int* jsu,
-                 int* nps);
+                 double* yyy, double* zzz, double* huge, double* dls, int* jap,
+                 int* jsu, int* nps);
 
 /* Measure entities
- * vols - 2xN array where first column contains, as output, measure of every volume.
- * aras - 2xN array where first column contains, as output, measure of every surface
+ * vols - 2xN array where first column contains, as output, measure of every
+ * volume. aras - 2xN array where first column contains, as output, measure of
+ * every surface
  */
 void dagmcvolume_(int* mxa, double* vols, int* mxj, double* aras);
 
 /* Set distance limit */
 void dagmc_setdis_(double* d);
 
-void dagmc_set_settings_(int* use_dist_limit, int* use_cad, double* overlap_thickness, int* srccell_mode);
+void dagmc_set_settings_(int* use_dist_limit, int* use_cad,
+                         double* overlap_thickness, int* srccell_mode);
 
 void dagmc_init_settings_(int* use_dist_limit, int* use_cad,
-                          double* overlap_thickness, double* facet_tol, int* srccell_mode);
+                          double* overlap_thickness, double* facet_tol,
+                          int* srccell_mode);
 
 void dagmc_teardown_();
 
 #ifdef __cplusplus
-} // extern "C"
+}  // extern "C"
 #endif
 
-void write_cell_cards(std::ostringstream& lcad_string, const char* mcnp_version_major = "5");
+void write_cell_cards(std::ostringstream& lcad_string,
+                      const char* mcnp_version_major = "5");
 void write_surface_cards(std::ostringstream& lcad_string);
 void write_material_data(std::ostringstream& lcad_string);
 void write_tally_data(std::ostringstream& lcad_string);
 
-// until we adopt C++11 - makes life easy
-// convenience functions for c++ int to string
-std::string _to_string(int val);
 // convenience functions for c++ double to string
 std::string _to_string(double val);
 

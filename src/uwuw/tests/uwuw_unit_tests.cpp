@@ -1,14 +1,19 @@
 //  DagSolid_test.cpp
 #include <gtest/gtest.h>
-#include <cmath>
-#include <cassert>
-
-#include <iostream>
-#include <unistd.h>
 #include <stdio.h>
+#if !defined(_MSC_VER) && !defined(__MINGW32__)
+#include <sys/resource.h>
+#include <unistd.h>
+#else
+#include <io.h>
+#endif
+#include <cassert>
+#include <cmath>
+#include <iostream>
+#include <sstream>
 
+#include "pyne.h"
 #include "uwuw.hpp"
-#include "../pyne/pyne.h"
 
 UWUW* workflow_data;
 
@@ -16,18 +21,13 @@ UWUW* workflow_data;
 
 class UWUWTest : public ::testing::Test {
  protected:
-
-  virtual void SetUp() {
-    workflow_data = new UWUW(std::string(TEST_FILE));
-  }
+  virtual void SetUp() { workflow_data = new UWUW(std::string(TEST_FILE)); }
 };
 
 /*
  * Empty common setup function
  */
-TEST_F(UWUWTest, SetUp) {
-
-}
+TEST_F(UWUWTest, SetUp) {}
 
 /*
  * Test to make sure the total path is correct
@@ -86,8 +86,6 @@ TEST_F(UWUWTest, filepath4) {
   return;
 }
 
-
-
 /*
  * Test to make sure that the number of materials is correct
  */
@@ -101,7 +99,7 @@ TEST_F(UWUWTest, materiallibrary1) {
  */
 TEST_F(UWUWTest, materiallibrary2) {
   // iterator for material library
-  std::map<std::string, pyne::Material>::iterator it;
+  pyne::MaterialLibrary::iterator it;
   it = workflow_data->material_library.begin();
   EXPECT_NE(it, workflow_data->material_library.end());
   return;
@@ -116,16 +114,19 @@ TEST_F(UWUWTest, material_datapath) {
   pyne::comp_map nucvec;
   nucvec[pyne::nucname::id("H")] = 1.0;
   nucvec[pyne::nucname::id("Fe")] = 1.0;
+
+  // create a Material Library object
+  pyne::MaterialLibrary mat_lib = pyne::MaterialLibrary();
+
+  // Fill the material library with mats
   pyne::Material mat = pyne::Material(nucvec);
   mat.metadata["name"] = "Wet Steel";
-  mat.write_hdf5("new_mat_test.h5", "/materials"
-                 , "/nucid");
-
+  mat_lib.add_material(mat);
   pyne::Material mat2 = pyne::Material(nucvec);
   mat2.metadata["name"] = "Wet Steel 2";
-  mat2.write_hdf5("new_mat_test.h5", "/materials"
-                  , "/nucid");
-
+  mat_lib.add_material(mat2);
+  // write the material libs
+  mat_lib.write_hdf5("new_mat_test.h5", "/materials", true);
 
   workflow_data->~UWUW();
 
@@ -136,3 +137,23 @@ TEST_F(UWUWTest, material_datapath) {
   return;
 }
 
+TEST_F(UWUWTest, mat_write) {
+  pyne::comp_map nucvec;
+  nucvec[pyne::nucname::id("H1")] = 2.0;
+  nucvec[pyne::nucname::id("O16")] = 1.0;
+  pyne::Material mat = pyne::Material(nucvec, -1.0, 1.0);
+  mat.metadata["name"] = "Water";
+  mat.metadata["mat_number"] = 1;
+  // check openmc material write
+  std::string openmc_rep = mat.openmc();
+  std::stringstream expected_rep;
+  expected_rep << "  <material id=\"1\" name=\"Water\" >\n";
+  expected_rep << "    <density value=\"1.\" units=\"g/cc\" />\n";
+  expected_rep << "    <nuclide name=\"H1\" wo=\"6.6667e-01\" />\n";
+  expected_rep << "    <nuclide name=\"O16\" wo=\"3.3333e-01\" />\n";
+  expected_rep << "  </material>\n";
+
+  EXPECT_EQ(expected_rep.str(), openmc_rep);
+
+  return;
+}
