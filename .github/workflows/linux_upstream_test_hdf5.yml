@@ -25,4 +25,4 @@ jobs:
         uses: ./.github/actions/upstream-test
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          hdf5_version: develop
+          hdf5_version: hdf5-1.14.6
